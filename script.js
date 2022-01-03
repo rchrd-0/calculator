@@ -4,14 +4,14 @@ const running = container.querySelector('#running');
 const buttons = container.querySelector('.buttons');
 
 const clear = container.querySelector('#clear');
-let memory = {value: [], operation: '', result: 0,};
+let workingMemory = {value: [], operation: '', result: null,};
 let input = [];
 let pasta = [];
 const reset = () => {
-    memory = {value: [], operation: '', result: 0,};
-    // memory.value.splice(0, memory.value.length);
-    // memory.operation.splice(0, memory.operation.length);
-    // memory.result = 0
+    workingMemory = {value: [], operation: '', result: null,};
+    // workingMemory.value.splice(0, workingMemory.value.length);
+    // workingMemory.operation.splice(0, workingMemory.operation.length);
+    // workingMemory.result = 0
     input.splice(0, input.length);
     pasta.splice(0, pasta.length);
     working.textContent = 0;
@@ -49,11 +49,14 @@ const storeValue = (memoryObj, inputArr) => {
 
 
 
+
 buttons.addEventListener('click', event => {
     const target = event.target;
     
     if (target.getAttribute('class') === 'number') {
+        //Won't concatenate zeros on leading 0 in working display
         if (working.textContent === '0' && target.textContent === '0') return
+        //Replaces leading 0 with input number
         else if (working.textContent === '0') {
             working.textContent = target.textContent;
         } else {
@@ -62,42 +65,55 @@ buttons.addEventListener('click', event => {
 
         input.push(target.textContent);
 
-        // if (memory.value.length === 1) {
+        // if (workingMemory.value.length === 1) {
         //     pasta.splice(0, pasta.length, +input.join(''));
         //     input.splice(0, input.length)
-        //     memory.result = evaluate(...memory.operation, memory.value[0], pasta[0])
-        //     running.textContent = memory.result;
+        //     workingMemory.result = evaluate(...workingMemory.operation, workingMemory.value[0], pasta[0])
+        //     running.textContent = workingMemory.result;
 
         // }
         
     }
 
     if (target.getAttribute('class') === 'operator') {
+        if (workingMemory.value.length === 1 && input.length > 0) {
+            storeValue(workingMemory, input);
+        workingMemory.result = evaluate(workingMemory.operation, ...workingMemory.value)
+        workingMemory.value.splice(0, 2);
+        running.textContent = `= ${workingMemory.result}`
+        }
+        //If display value left on default 0 (ie. user inputs no numbers), assume first operand to be 0, store 0 in memoryr
+        if (!input.length && !workingMemory.value.length) workingMemory.value[0] = 0;
         const displayOperator = target.textContent;
-        storeValue(memory, input);
+        //Store result from previous calculation in workingMemory. If no such result exists, store user input as normal
+        if (workingMemory.result != null) {
+            workingMemory.value.splice(0, 2, workingMemory.result);
+            workingMemory.result = null;
+        } else storeValue(workingMemory, input);
 
-        memory.operation = `${target.getAttribute('id')}`
-        working.textContent = `${memory.value[0]} ${displayOperator} `
+        workingMemory.operation = `${target.getAttribute('id')}`
+        working.textContent = `${workingMemory.value[0]} ${displayOperator} `
     }
 
     if (target.getAttribute('class') === 'equals') {
-        if (memory.value.length <= 1 && !input.length) return
-        storeValue(memory, input);
-        
-        memory.result = evaluate(memory.operation, ...memory.value)
-        running.textContent = memory.result;
-        } else return
+        //Won't allow calculation unless 2 operands and an operator has been entered
+        if (workingMemory.value.length <= 1 && (!input.length || !workingMemory.operation)) return
+        storeValue(workingMemory, input);
+        workingMemory.result = evaluate(workingMemory.operation, ...workingMemory.value)
+        workingMemory.value.splice(0, 2);
+        running.textContent = `= ${workingMemory.result}`
+        } 
 })
 
 
-        // if (!input.length && !!memory.result) {
+        // if (!input.length && !!workingMemory.result) {
         //     running.textContent = null;
-        //     working.textContent = `${memory.result} ${target.textContent}`;
-        //     memory.value.push(memory.result);
-        //     memory.result = 0;
+        //     working.textContent = `${workingMemory.result} ${target.textContent}`;
+        //     workingMemory.value.push(workingMemory.result);
+        //     workingMemory.result = 0;
         // }
         // if (input.length) {
-        //     memory.value.push(
+        //     workingMemory.value.push(
         //         input.reduce((start, next) => {
         //             start += next
         //             return +start
@@ -108,8 +124,8 @@ buttons.addEventListener('click', event => {
 
 
 
-        // if (!memory.value.length && !!memory.result) {
-        //     memory.value.push(memory.result)
+        // if (!workingMemory.value.length && !!workingMemory.result) {
+        //     workingMemory.value.push(workingMemory.result)
         // }
 
         // working.textContent += `${input[0]}`;
@@ -117,15 +133,15 @@ buttons.addEventListener('click', event => {
 
 
     // if (target.getAttribute('class') === 'equals') {
-    //     if (!input.length && !!memory.result) return
-    //     storeValue(memory, input);
-    //     memory.result = operate(memory.operation, ...memory.value);
-    //     memory.value.splice(0, 2);
+    //     if (!input.length && !!workingMemory.result) return
+    //     storeValue(workingMemory, input);
+    //     workingMemory.result = operate(workingMemory.operation, ...workingMemory.value);
+    //     workingMemory.value.splice(0, 2);
     //     working.textContent += ' ='
-    //     running.textContent = memory.result;
+    //     running.textContent = workingMemory.result;
 
         // if (input.length) {
-        //     memory.value.push(
+        //     workingMemory.value.push(
         //         input.reduce((start, next) => {
         //             start += next
         //             return +start
@@ -144,13 +160,13 @@ buttons.addEventListener('click', event => {
 // }
 
         // input.outgoing.push(input.value.join(''))
-        // memory.value.push(+input.outgoing.splice(0, input.outgoing.length));
+        // workingMemory.value.push(+input.outgoing.splice(0, input.outgoing.length));
         // console.table(input);
-        // console.table(memory);
+        // console.table(workingMemory);
 
 
     // if (target.getAttribute('class') === 'calclulate') {
-    //     memory.value.push(+working.textContent);
-    //     console.table(memory);
+    //     workingMemory.value.push(+working.textContent);
+    //     console.table(workingMemory);
         
     // }
