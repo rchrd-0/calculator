@@ -1,8 +1,17 @@
 .display {
     width: 500px;
     height: 50px;
+    padding: 10px;
+    font-family: 'Helvetica';
     font-size: 24px;
     margin: 20px;
     border: 1px solid black;
     background-color: honeydew;
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    height: 50px;
+    width: 50px;
 }
