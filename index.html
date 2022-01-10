@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset='utf-8'>
+        <meta charset="utf-8">
         <script src="./script.js" defer></script>
         <link rel="stylesheet" href="./css/style.css">
         <title>The Odin Project—Calculator</title>
     </head>
     <body>
         <div class="container">
-            <div class="display" id="working">0</div>
-            <div class="display" id="running"></div>
+            <div class="display" id="input-display"></div>
+            <div class="display" id="result-display"></div>
             <div class="buttons">
                 <button class="number" id="number-9">9</button>
                 <button class="number" id="number-8">8</button>
@@ -21,14 +21,14 @@
                 <button class="number" id="number-2">2</button>
                 <button class="number" id="number-1">1</button>
                 <button class="number" id="number-0">0</button>
+                <button class="number" id="decimal-point">.</button>
                 <button class="operator" id="add">+</button>
                 <button class="operator" id="subtract">-</button>
                 <button class="operator" id="multiply">x</button>
                 <button class="operator" id="divide">÷</button>
                 <button class="equals">=</button>
-                <button id="clear">Clear</button>
-            </div>
-
+                <button class="utility" id="del">Del</button>
+                <button class="utility" id="clear">Clear</button>
         </div>
     </body>
 </html>
