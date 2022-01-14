@@ -1,16 +1,53 @@
 const container = document.querySelector('.container');
 const displays = [...container.getElementsByClassName('display')];
 const inputDisplay = container.querySelector('#input-display');
-const resultDisplay = container.querySelector('#result-display');
+const runningDisplay = container.querySelector('#running-display');
 const buttons = container.querySelector('.buttons');
+const historyDisplay = document.querySelector('.history-display');
+const historyPanel = historyDisplay.querySelector('ul');
+const historyButton = historyDisplay.querySelector('.history-clear');
+
+const calcHistory = [];
+function storeHistory(calc, result, cacheHistory) {
+    let li = document.createElement('li');
+    let calcItem = document.createElement('div');
+    let resultItem = document.createElement('div');
+    let length = historyPanel.getElementsByTagName('li').length;
+    let button = document.createElement('button');
+
+    calcItem.appendChild(document.createTextNode(calc));
+    calcItem.setAttribute('class', 'calc-item');
+    resultItem.appendChild(document.createTextNode(result));
+    resultItem.setAttribute('class', 'result-item');
+
+    li.setAttribute('class', `calc-${length}`);
+    li.append(calcItem, resultItem);
+
+    if (!length) {
+        historyPanel.appendChild(li);
+        historyButton.classList.toggle('hidden');
+    } else {
+        historyPanel.insertBefore(li, historyPanel.firstElementChild);
+    }
+
+    calcHistory[length] = cacheHistory;
+}
+function clearHistory() {
+    let lastChild = historyPanel.children.length
+    for (let i = 0; i < lastChild; i++) {
+        historyPanel.removeChild(historyPanel.lastElementChild);
+        calcHistory.pop();
+    }
+    this.classList.toggle('hidden');
+}
 
 function reset() {
     cache = {values: [], operation: [], result: null};
-    display = {firstOperand: '0', operation: '', secondOperand: ''};
+    displayValues = {firstOperand: '0', operation: '', secondOperand: ''};
     input = ['0'];
+    runningDisplay.textContent = null;
     updateDisplay();
     divideZero();
-    resultDisplay.textContent = null;
 }
 
 const calculate = (o, a, b) => {
@@ -36,26 +73,26 @@ const updateDisplay = (type, value) => {
     switch (type) {
         case 'number': 
             //Determines whether number input belongs in the first operand or second by checking for existing operator
-            if (display.operation.length > 0) {
-                display.secondOperand = [...input].join('');
+            if (displayValues.operation.length > 0) {
+                displayValues.secondOperand = [...input].join('');
             } else {
-                display.firstOperand = [...input].join('');
+                displayValues.firstOperand = [...input].join('');
             }
             break;
         case 'pushResult': 
-            display.firstOperand = String(value);
-            display.secondOperand = '';
+            displayValues.firstOperand = String(value);
+            displayValues.secondOperand = '';
             break;
         case 'operator':
-            display.operation = value;
+            displayValues.operation = value;
             break;
     }
-    inputDisplay.textContent = `${display.firstOperand} ${display.operation} ${display.secondOperand}`;
+    inputDisplay.textContent = `${displayValues.firstOperand} ${displayValues.operation} ${displayValues.secondOperand}`;
 }
 
 const backspace = () => {
-    const first = display.firstOperand;
-    const second = display.secondOperand;
+    const first = displayValues.firstOperand;
+    const second = displayValues.secondOperand;
     const operatorList = [...buttons.getElementsByClassName('operator')];
     const undoStoreValue = () => {
         cache.values.pop();
@@ -64,27 +101,28 @@ const backspace = () => {
 
     /* Backspacing on result will undo the operation clear on equals function, 
     also clears result */
-    if (cache.result && cache.values.length === 2) {
+    if (!isNaN(cache.result) && cache.values.length === 2) {
         let previousOperator = operatorList.find(operator => operator.textContent ===
-            display.operation);
+            displayValues.operation);
         cache.operation[0] = previousOperator.id;
         cache.result = null;
-        resultDisplay.textContent = null;
+        inputDisplay.textContent = runningDisplay.textContent;
+        runningDisplay.textContent = null;
         undoStoreValue();
         return;
     }
 
     if (second) {
-        display.secondOperand = [...second]
+        displayValues.secondOperand = [...second]
             .slice(0, second.length - 1)
             .join('');
         input.pop();
-    } else if (display.operation) {
-        display.operation = '';
+    } else if (displayValues.operation) {
+        displayValues.operation = '';
         cache.operation.pop();
         undoStoreValue();
     } else if (first) {
-        display.firstOperand = [...first]
+        displayValues.firstOperand = [...first]
             .slice(0, first.length - 1)
             .join('');
         input.pop();
@@ -102,7 +140,7 @@ const number = (n) => {
         else divideZero();
     }
 
-    if (cache.result && cache.values.length === 2) reset();
+    if (!isNaN(cache.result) && cache.values.length === 2) reset();
 
     if (+num > 0) {
         if (input.length === 1 && input[0] === '0') input.pop(); 
@@ -173,7 +211,7 @@ const operation = (o) => {
     updateDisplay('operator', displayOperator);
 }
 
-const equals = () => {
+const equals = (type) => {
     if (cache.operation.includes('divide') && parseFloat(input.join('')) === 0) {
         divideZero(true);
         return;
@@ -181,8 +219,19 @@ const equals = () => {
 
     if (cache.values.length > 0 && input.length > 0) {
         storeValue();
-        cache.result = calculate(cache.operation.shift(), ...cache.values);
-        resultDisplay.textContent = cache.result;
+        let operation = cache.operation.shift();
+        cache.result = calculate(operation, ...cache.values);
+        runningDisplay.textContent = inputDisplay.textContent;
+        inputDisplay.textContent = cache.result;
+        
+        /* Stores calculation in history panel only when equals is explicitly 
+        entered (ie. not an operator acting as equals) */
+        if (type === 'history') {
+            let calculation = {...displayValues};
+            let history = `${runningDisplay.textContent}`;
+            let result = cache.result
+            storeHistory(history, result, calculation);
+        }
     } else return
 }
 
@@ -190,10 +239,10 @@ let checkZero = () => displays.some(div => div.classList.contains('division-by-z
 function divideZero(bool) {
     if (bool) {
         displays.forEach(div => div.classList.add('division-by-zero'));
-        resultDisplay.textContent = `Can\'t divide by 0`;
+        runningDisplay.textContent = `Can\'t divide by 0`;
     } else {
         displays.forEach(div => div.classList.remove('division-by-zero'));
-        resultDisplay.textContent = null;
+        runningDisplay.textContent = null;
     }
 }
 
@@ -219,7 +268,7 @@ buttons.addEventListener('click', event => {
             operation(target);
             break;
         case 'equals':
-            equals();
+            equals('history');
             break;
         case 'utility':
             if (target.getAttribute('id') === 'del') backspace(); 
@@ -287,4 +336,20 @@ document.addEventListener('keydown', event => {
     }
 
 });
+historyPanel.addEventListener('click', event => {
+    if (event.target.tagName === 'DIV') {
+        let item = event.target.parentNode;
+        let calcNum = item.classList.value.slice(5);
+        let calcItem = calcHistory[calcNum];
+
+        cache.result = +item.lastElementChild.textContent;
+        cache.values = [+calcItem.firstOperand, +calcItem.secondOperand];
+        displayValues = calcItem;
+
+        updateDisplay();
+        runningDisplay.textContent = inputDisplay.textContent;
+        inputDisplay.textContent = cache.result;
+    } else return;
+})
+historyButton.addEventListener('click', clearHistory)
 window.addEventListener('load', reset())
