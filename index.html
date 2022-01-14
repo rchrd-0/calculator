@@ -8,31 +8,52 @@
     </head>
     <body>
         <div class="container">
-            <div class="display" id="running-display"></div>
-            <div class="display" id="input-display"></div>
-            <div class="buttons">
-                <button class="number" id="number-9">9</button>
-                <button class="number" id="number-8">8</button>
-                <button class="number" id="number-7">7</button>
-                <button class="number" id="number-6">6</button>
-                <button class="number" id="number-5">5</button>
-                <button class="number" id="number-4">4</button>
-                <button class="number" id="number-3">3</button>
-                <button class="number" id="number-2">2</button>
-                <button class="number" id="number-1">1</button>
-                <button class="number" id="number-0">0</button>
-                <button class="number" id="decimal-point">.</button>
-                <button class="operator" id="add">+</button>
-                <button class="operator" id="subtract">-</button>
-                <button class="operator" id="multiply">x</button>
-                <button class="operator" id="divide">÷</button>
-                <button class="equals">=</button>
-                <button class="utility" id="del">Del</button>
-                <button class="utility" id="clear">Clear</button>
+            <div class="calc-main">
+                <div class="displays-container">
+                    <div class="display" id="running-display"></div>
+                    <div class="display" id="input-display"></div>
+                </div>
+                <div class="buttons-container">
+                    <button class="tools" id="clear">
+                        <span>C</span>
+                        <span class="keyboard-input display-none">esc</span>
+                    </button>
+                    <button class="tools" id="backspace">&#9003;</button>
+                    <button class="tools" id="history">
+                        <span>&#10226;</span>
+                        <span class="keyboard-input display-none">h</span>
+                        </button>
+                    <button class="operator" id="divide">
+                        <span>÷</span>
+                        <span class="keyboard-input display-none">/</span>
+                    </button>
+                    <button class="number" id="number-7">7</button>
+                    <button class="number" id="number-8">8</button>
+                    <button class="number" id="number-9">9</button>
+                    <button class="operator" id="multiply">
+                        <span>×</span>
+                        <span class="keyboard-input display-none">&#8727;</span>
+                    </button>
+                    <button class="number" id="number-6">6</button>
+                    <button class="number" id="number-5">5</button>
+                    <button class="number" id="number-4">4</button>
+                    <button class="operator" id="subtract">-</button>
+                    <button class="number" id="number-3">3</button>
+                    <button class="number" id="number-2">2</button>
+                    <button class="number" id="number-1">1</button>
+                    <button class="operator" id="add">+</button>
+                    <button class="number" id="decimal-point">.</button>
+                    <button class="number" id="number-0">0</button>
+                    <button class="tools state-inactive" id="equals">
+                        <span>=</span>
+                        <span class="keyboard-input display-none">return</span>
+                    </button>
+                </div>
             </div>
-            <div class="history-display">
+            <div class="history-panel opacity-0">
+                <button class="history-clear display-none">Clear history</button>
+                <div class="history-message">Your calculations will be stored here</div>
                 <ul></ul>
-            <button class="history-clear hidden">Clear history</button>
             </div>
         </div>
     </body>

@@ -1,58 +1,26 @@
 const container = document.querySelector('.container');
+const buttonsContainer = container.querySelector('.buttons-container');
+
 const displays = [...container.getElementsByClassName('display')];
 const inputDisplay = container.querySelector('#input-display');
 const runningDisplay = container.querySelector('#running-display');
-const buttons = container.querySelector('.buttons');
-const historyDisplay = document.querySelector('.history-display');
-const historyPanel = historyDisplay.querySelector('ul');
-const historyButton = historyDisplay.querySelector('.history-clear');
 
-const calcHistory = [];
-function storeHistory(calc, result, cacheHistory) {
-    let li = document.createElement('li');
-    let calcItem = document.createElement('div');
-    let resultItem = document.createElement('div');
-    let length = historyPanel.getElementsByTagName('li').length;
-    let button = document.createElement('button');
-
-    calcItem.appendChild(document.createTextNode(calc));
-    calcItem.setAttribute('class', 'calc-item');
-    resultItem.appendChild(document.createTextNode(result));
-    resultItem.setAttribute('class', 'result-item');
-
-    li.setAttribute('class', `calc-${length}`);
-    li.append(calcItem, resultItem);
-
-    if (!length) {
-        historyPanel.appendChild(li);
-        historyButton.classList.toggle('hidden');
-    } else {
-        historyPanel.insertBefore(li, historyPanel.firstElementChild);
-    }
-
-    calcHistory[length] = cacheHistory;
-}
-function clearHistory() {
-    let lastChild = historyPanel.children.length
-    for (let i = 0; i < lastChild; i++) {
-        historyPanel.removeChild(historyPanel.lastElementChild);
-        calcHistory.pop();
-    }
-    this.classList.toggle('hidden');
-}
+const historyPanel = document.querySelector('.history-panel');
+const historyDisplay = historyPanel.querySelector('ul');
+const historyButton = historyPanel.querySelector('.history-clear');
+const historyMessage = historyPanel.querySelector('.history-message');
 
 function reset() {
     cache = {values: [], operation: [], result: null};
-    displayValues = {firstOperand: '0', operation: '', secondOperand: ''};
-    input = ['0'];
-    runningDisplay.textContent = null;
-    updateDisplay();
+    displayValues = {firstOperand: '', operation: '', secondOperand: ''};
+    input = [];
     divideZero();
+    updateDisplay();
 }
 
-const calculate = (o, a, b) => {
+function calculate(operator, a, b) {
     let result;
-    switch (o) {
+    switch (operator) {
         case 'add':
             result = a + b;
             break;
@@ -66,10 +34,10 @@ const calculate = (o, a, b) => {
             result = a / b;
             break;
     }
-    return parseFloat(result.toFixed(12));
+    return parseFloat(result.toPrecision(12));
 }
 
-const updateDisplay = (type, value) => {
+function updateDisplay(type, value) {
     switch (type) {
         case 'number': 
             //Determines whether number input belongs in the first operand or second by checking for existing operator
@@ -90,10 +58,10 @@ const updateDisplay = (type, value) => {
     inputDisplay.textContent = `${displayValues.firstOperand} ${displayValues.operation} ${displayValues.secondOperand}`;
 }
 
-const backspace = () => {
+function deleteInput() {
     const first = displayValues.firstOperand;
     const second = displayValues.secondOperand;
-    const operatorList = [...buttons.getElementsByClassName('operator')];
+    const operatorList = [...buttonsContainer.getElementsByClassName('operator')];
     const undoStoreValue = () => {
         cache.values.pop();
         input = (second) ? [...second] : [...first];
@@ -102,7 +70,7 @@ const backspace = () => {
     /* Backspacing on result will undo the operation clear on equals function, 
     also clears result */
     if (!isNaN(cache.result) && cache.values.length === 2) {
-        let previousOperator = operatorList.find(operator => operator.textContent ===
+        let previousOperator = operatorList.find(operator => operator.innerText ===
             displayValues.operation);
         cache.operation[0] = previousOperator.id;
         cache.result = null;
@@ -132,9 +100,7 @@ const backspace = () => {
     updateDisplay();
 }
 
-const number = (n) => {
-    let num = n.textContent;
-
+function inputNumber(num) {
     if (checkZero()) {
         if (num === '0') return;
         else divideZero();
@@ -161,22 +127,26 @@ const number = (n) => {
     updateDisplay('number');
 }
 
-const operation = (o) => {
-    let operator = o.getAttribute('id');
-    let displayOperator = o.textContent;
+function inputOperation(operator) {
+    const displayOperators = {
+        add: '+',
+        subtract: '-',
+        multiply: '×',
+        divide: '÷',
+    }
 
     if (checkZero()) {
         if (operator === 'divide') return;
         else {
             divideZero();
             cache.operation.splice(0, 1, operator);
-            updateDisplay('operator', displayOperator);
+            updateDisplay('operator', displayOperators[operator]);
             return;
         }
     }
 
-    /* If user deletes default leading zero and then inputs an operator, 
-    assumes 0 to be first operand */
+    /* If user inputs an operator witohut first entering a number, assumes 0 to 
+        be first operand */
     if (input.length === 0 && !cache.values.length) {
         input.push('0');
         updateDisplay('number');        
@@ -196,7 +166,7 @@ const operation = (o) => {
     Requires (1) operand1 has been stored in cache and operand2 has been inputted
     (2) cache.operation array contains relevant operations */
     if (input.length > 0 && Boolean(cache.operation) && cache.values.length === 1) {
-        equals();
+        inputEquals();
         cache.values.splice(0, 2, cache.result);
         updateDisplay('pushResult', cache.result);
     } else storeValue();
@@ -208,10 +178,10 @@ const operation = (o) => {
         updateDisplay('pushResult', cache.result);
     }
 
-    updateDisplay('operator', displayOperator);
+    updateDisplay('operator', displayOperators[operator]);
 }
 
-const equals = (type) => {
+function inputEquals(type) {
     if (cache.operation.includes('divide') && parseFloat(input.join('')) === 0) {
         divideZero(true);
         return;
@@ -226,11 +196,10 @@ const equals = (type) => {
         
         /* Stores calculation in history panel only when equals is explicitly 
         entered (ie. not an operator acting as equals) */
-        if (type === 'history') {
+        if (type === 'storeHistory') {
             let calculation = {...displayValues};
-            let history = `${runningDisplay.textContent}`;
-            let result = cache.result
-            storeHistory(history, result, calculation);
+            calculation['result'] = cache.result;
+            storeHistory(calculation);
         }
     } else return
 }
@@ -246,7 +215,7 @@ function divideZero(bool) {
     }
 }
 
-const storeValue= () => {
+ function storeValue() {
     if (input.length > 0) {
         cache.values.push(
             +input.splice(0, input.length)
@@ -254,102 +223,142 @@ const storeValue= () => {
         );
     }
 }
+function toggleState(element, ...states) {
+    states.forEach(item => element.classList.toggle(item))
+}
+
+function showHideKeyboard() {
+    const span = document.querySelectorAll('span');
+    span.forEach(sp => toggleState(sp, 'display-none'));
+
+}
+
+//History panel
+const calcHistory = [];
+function storeHistory(calculation) {
+    let li = document.createElement('li');
+    let calcItem = document.createElement('div');
+    let resultItem = document.createElement('div');
+    let length = historyDisplay.getElementsByTagName('li').length;
+    let calcNum = `calc-${length}`;
+
+    let calc = `${calculation.firstOperand} ${calculation.operation} 
+        ${calculation.secondOperand}`
+
+    calcItem.appendChild(document.createTextNode(calc));
+    calcItem.setAttribute('class', 'calc-item');
+    resultItem.appendChild(document.createTextNode(calculation.result));
+    resultItem.setAttribute('class', 'result-item');
+
+    li.setAttribute('id', calcNum);
+    li.append(calcItem, resultItem);
+
+    if (!length) {
+        historyDisplay.appendChild(li);
+        historyButton.classList.toggle('display-none');
+        historyMessage.classList.toggle('display-none');
+    } else {
+        historyDisplay.insertBefore(li, historyDisplay.firstElementChild);
+    }
+
+    calcHistory[length] = calculation;
+}
+function clearHistory() {
+    let lastChild = historyDisplay.children.length
+    for (let i = 0; i < lastChild; i++) {
+        historyDisplay.removeChild(historyDisplay.lastElementChild);
+        calcHistory.pop();
+    }
+    this.classList.toggle('display-none');
+    historyMessage.classList.toggle('display-none');
+}
+function retrieveHistory(target, tag) {
+    reset();
+    let item = (tag === 'DIV') ? target.parentNode : target
+    let itemNum = item.id.slice(5); //calc-n as index number
+    let calcItem = calcHistory[itemNum];
+
+    cache.result = calcItem.result
+    cache.values = [Number(calcItem.firstOperand), Number(calcItem.secondOperand)];
+    for (let key in displayValues) {
+        if (Object.keys(calcItem).includes(key)) {
+            displayValues[key] = calcItem[key];
+        }
+    }
+
+    updateDisplay();
+    runningDisplay.textContent = inputDisplay.textContent;
+    inputDisplay.textContent = cache.result;
+}
 
 //Event listeners
-buttons.addEventListener('click', event => {
-    const target = event.target
-    const type = target.getAttribute('class');
-
-    switch (type) {
-        case 'number':
-            number(target);
-            break;
-        case 'operator':
-            operation(target);
-            break;
-        case 'equals':
-            equals('history');
-            break;
-        case 'utility':
-            if (target.getAttribute('id') === 'del') backspace(); 
-            if (target.getAttribute('id') === 'clear') reset();
-            break;
-    }
-});
 document.addEventListener('keydown', event => {
-    const key = event.key;
-    switch (key) {
-        case '0':
-            buttons.querySelector('#number-0').click();
-            break;
-        case '1':
-            buttons.querySelector('#number-1').click();
-            break;  
-        case '2':
-            buttons.querySelector('#number-2').click();
-            break;
-        case '3': 
-            buttons.querySelector('#number-3').click();
-            break;
-        case '4':
-            buttons.querySelector('#number-4').click();
-            break;
-        case '5':
-            buttons.querySelector('#number-5').click();
-            break;
-        case '6':
-            buttons.querySelector('#number-6').click();
-            break;
-        case '7':
-            buttons.querySelector('#number-7').click();
-            break;  
-        case '8':
-            buttons.querySelector('#number-8').click();
-            break;
-        case '9':
-            buttons.querySelector('#number-9').click();
-            break;
-        case '.':
-            buttons.querySelector('#decimal-point').click();
-            break;
-        case '+':
-            buttons.querySelector('#add').click();
-            break;
-        case '-':
-            buttons.querySelector('#subtract').click();
-            break;
-        case '*':
-            buttons.querySelector('#multiply').click();
-            break;
-        case '/':
-            buttons.querySelector('#divide').click();
-            break;
-        case 'Enter':
-            buttons.querySelector('.equals').click();
-            break;
-        case 'Backspace':
-            buttons.querySelector('#del').click();
-            break;
-        case 'Escape':
-            buttons.querySelector('#clear').click();
-            break;
+    const eventKey = event.key;
+    const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
+    const buttonMap = {
+        '+': 'add',
+        '-': 'subtract',
+        '*': 'multiply',
+        '/': 'divide',
+        'Escape': 'clear',
+        'Backspace': 'backspace',
+        'Enter': 'equals',
+        'h': 'history',
+    };
+
+    if ((event.key === 'h' || event.key === 'q') && event.repeat) return;
+    if (event.key === 'q') showHideKeyboard();
+
+    let mappedButton;
+    if (numbers.includes(eventKey)) {
+        if (eventKey === '.') {
+            mappedButton = document.getElementById('decimal-point');
+        } else {
+            mappedButton = document.getElementById(`number-${eventKey}`);
+        }
+    }
+    if (Object.keys(buttonMap).includes(eventKey)) {
+        let buttonId = buttonMap[eventKey];
+        mappedButton = document.getElementById(buttonId);
     }
 
+    if (mappedButton) mappedButton.click();
 });
-historyPanel.addEventListener('click', event => {
-    if (event.target.tagName === 'DIV') {
-        let item = event.target.parentNode;
-        let calcNum = item.classList.value.slice(5);
-        let calcItem = calcHistory[calcNum];
+document.addEventListener('keyup', event => {
+    if (event.key === 'q') {
+        if (event.repeat) return;
+        showHideKeyboard();
+    } 
+});
+buttonsContainer.addEventListener('click', event => {
+    const tagName = event.target.tagName;
+    const target = (tagName === 'SPAN') ? event.target.parentNode : event.target;
+    const buttonType = target.getAttribute('class');
+    const buttonId = target.getAttribute('id')
 
-        cache.result = +item.lastElementChild.textContent;
-        cache.values = [+calcItem.firstOperand, +calcItem.secondOperand];
-        displayValues = calcItem;
+    switch (true) {
+        case (buttonType.includes('number')):
+            inputNumber(target.textContent);
+            break;
+        case (buttonType.includes('operator')):
+            inputOperation(target.id);
+            break;
+        case (buttonType.includes('tools')):
+            if (buttonId === 'backspace') deleteInput();
+            if (buttonId === 'clear') reset();
+            if (buttonId === 'equals') inputEquals('storeHistory');
+            if (buttonId === 'history') {
+                toggleState(target, 'state-inactive', 'state-active')
+                toggleState(historyPanel, 'opacity-0', 'opacity-1');
+            }
+            break;
+    }
+});
+historyDisplay.addEventListener('click', event => {
+    let target = event.target;
+    let tag = target.tagName;
 
-        updateDisplay();
-        runningDisplay.textContent = inputDisplay.textContent;
-        inputDisplay.textContent = cache.result;
-    } else return;
+    if (tag === 'DIV' || tag === 'LI') retrieveHistory(target, tag)
 })
-historyButton.addEventListener('click', clearHistory)
-window.addEventListener('load', reset())
+historyButton.addEventListener('click', clearHistory);
+window.addEventListener('load', reset());
