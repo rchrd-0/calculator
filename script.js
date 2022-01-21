@@ -4,6 +4,7 @@ const buttonsContainer = container.querySelector('.buttons-container');
 const displays = [...container.getElementsByClassName('display')];
 const inputDisplay = container.querySelector('#input-display');
 const runningDisplay = container.querySelector('#running-display');
+const pasta = document.querySelector('.pasta');
 
 const historyPanel = document.querySelector('.history-panel');
 const historyDisplay = historyPanel.querySelector('ul');
@@ -12,7 +13,7 @@ const historyMessage = historyPanel.querySelector('.history-message');
 
 function reset() {
     cache = {values: [], operation: [], result: null};
-    displayValues = {firstOperand: '', operation: '', secondOperand: ''};
+    displayValues = {operand1: '', operation: '', operand2: ''};
     input = [];
     divideZero();
     updateDisplay();
@@ -34,34 +35,63 @@ function calculate(operator, a, b) {
             result = a / b;
             break;
     }
-    return parseFloat(result.toPrecision(12));
+    
+    result = parseFloat(result.toPrecision(10));
+    if (result.toString().length > 12) {
+        return result.toExponential()
+    }
+    return result;
 }
 
 function updateDisplay(type, value) {
     switch (type) {
         case 'number': 
-            //Determines whether number input belongs in the first operand or second by checking for existing operator
-            if (displayValues.operation.length > 0) {
-                displayValues.secondOperand = [...input].join('');
+            if (displayValues.operation) {
+                displayValues.operand2 = [...input].join('');
             } else {
-                displayValues.firstOperand = [...input].join('');
+                displayValues.operand1 = [...input].join('');
             }
             break;
         case 'pushResult': 
-            displayValues.firstOperand = String(value);
-            displayValues.secondOperand = '';
+            displayValues.operand1 = String(value);
+            displayValues.operand2 = '';
             break;
         case 'operator':
             displayValues.operation = value;
             break;
     }
-    inputDisplay.textContent = `${displayValues.firstOperand} ${displayValues.operation} ${displayValues.secondOperand}`;
+
+    if (liveCalc && cache.operation.length) {
+        // let liveResult;
+        // if ((input.length < 1) || (cache.operation[0] === 'divide' && 
+        //         +input.join('') === 0)) { 
+        //     liveResult = null;
+        // } else {
+        //     liveResult = calculate(cache.operation[0], cache.values[0], +input.join(''));
+        // }
+        runningDisplay.textContent = autoCalc();
+        // runningDisplay.textContent = liveResult;
+    }
+
+    inputDisplay.textContent = `${displayValues.operand1} ${displayValues.operation} ${displayValues.operand2}`;
+}
+
+let liveCalc = false;
+function autoCalc() {
+    // let liveResult;
+    if ((input.length < 1) || (cache.operation[0] === 'divide' && 
+            +input.join('') === 0)) { 
+        return null;
+    } else {
+        return calculate(cache.operation[0], cache.values[0], +input.join(''));
+    }
 }
 
 function deleteInput() {
-    const first = displayValues.firstOperand;
-    const second = displayValues.secondOperand;
     const operatorList = [...buttonsContainer.getElementsByClassName('operator')];
+    const first = displayValues.operand1;
+    const second = displayValues.operand2;
+    
     const undoStoreValue = () => {
         cache.values.pop();
         input = (second) ? [...second] : [...first];
@@ -80,8 +110,10 @@ function deleteInput() {
         return;
     }
 
+    /* Determines what to delete/backspace by checking existence of the following 
+    in order: operand2, operator, operand1 */
     if (second) {
-        displayValues.secondOperand = [...second]
+        displayValues.operand2 = [...second]
             .slice(0, second.length - 1)
             .join('');
         input.pop();
@@ -90,7 +122,7 @@ function deleteInput() {
         cache.operation.pop();
         undoStoreValue();
     } else if (first) {
-        displayValues.firstOperand = [...first]
+        displayValues.operand1 = [...first]
             .slice(0, first.length - 1)
             .join('');
         input.pop();
@@ -101,15 +133,24 @@ function deleteInput() {
 }
 
 function inputNumber(num) {
-    if (checkZero()) {
-        if (num === '0') return;
-        else divideZero();
-    }
+    const resultExists = !isNaN(cache.result);
 
-    if (!isNaN(cache.result) && cache.values.length === 2) reset();
-
-    if (+num > 0) {
-        if (input.length === 1 && input[0] === '0') input.pop(); 
+    //Error handling
+    switch (true) {
+        /* If division by zero state is active, any number input that isn't 0 
+        will reset this state */
+        case (checkZero()):
+            if (num !== '0') divideZero();
+            break; 
+        /* Inputting a number after a calculation has completed assumes user 
+        wishes to start a new calculation, therefore reset() */
+        case (resultExists && cache.values.length === 2):
+            reset();
+            break;
+        /* Trims leading zero */
+        case (+num > 0):
+            if (input.length === 1 && input[0] === '0') input.pop();
+            break;
     }
 
     switch (num) {
@@ -123,11 +164,13 @@ function inputNumber(num) {
             //Only allows 1 leading zero
             if (input.length === 1 && input[0] === '0') return;
     }
+
     input.push(num);
     updateDisplay('number');
 }
 
 function inputOperation(operator) {
+    const resultExists = !isNaN(cache.result);
     const displayOperators = {
         add: '+',
         subtract: '-',
@@ -145,7 +188,7 @@ function inputOperation(operator) {
         }
     }
 
-    /* If user inputs an operator witohut first entering a number, assumes 0 to 
+    /* If user inputs an operator without first entering a number, assumes 0 to 
         be first operand */
     if (input.length === 0 && !cache.values.length) {
         input.push('0');
@@ -173,7 +216,7 @@ function inputOperation(operator) {
 
     /* Allows user to use the result of a single calculation (1 + 2 = 3) in subsequent 
     calculations if they input an operator (1 + 2 = 3 ==> 3 + ... */
-    if (!isNaN(cache.result) && cache.values.length === 2) {
+    if (resultExists && cache.values.length === 2) {
         cache.values.splice(0, 2, cache.result);
         updateDisplay('pushResult', cache.result);
     }
@@ -242,8 +285,8 @@ function storeHistory(calculation) {
     let length = historyDisplay.getElementsByTagName('li').length;
     let calcNum = `calc-${length}`;
 
-    let calc = `${calculation.firstOperand} ${calculation.operation} 
-        ${calculation.secondOperand}`
+    let calc = `${calculation.operand1} ${calculation.operation} 
+        ${calculation.operand2}`
 
     calcItem.appendChild(document.createTextNode(calc));
     calcItem.setAttribute('class', 'calc-item');
@@ -272,14 +315,14 @@ function clearHistory() {
     this.classList.toggle('display-none');
     historyMessage.classList.toggle('display-none');
 }
-function retrieveHistory(target, tag) {
+function History(target, tag) {
     reset();
     let item = (tag === 'DIV') ? target.parentNode : target
     let itemNum = item.id.slice(5); //calc-n as index number
     let calcItem = calcHistory[itemNum];
 
     cache.result = calcItem.result
-    cache.values = [Number(calcItem.firstOperand), Number(calcItem.secondOperand)];
+    cache.values = [Number(calcItem.operand1), Number(calcItem.operand2)];
     for (let key in displayValues) {
         if (Object.keys(calcItem).includes(key)) {
             displayValues[key] = calcItem[key];
@@ -306,6 +349,7 @@ document.addEventListener('keydown', event => {
         'h': 'history',
     };
 
+    if ((event.key === 'Enter')) event.preventDefault();
     if ((event.key === 'h' || event.key === 'q') && event.repeat) return;
     if (event.key === 'q') showHideKeyboard();
 
@@ -347,6 +391,7 @@ buttonsContainer.addEventListener('click', event => {
             if (buttonId === 'backspace') deleteInput();
             if (buttonId === 'clear') reset();
             if (buttonId === 'equals') inputEquals('storeHistory');
+            if (buttonId === 'live-calc') liveCalc = (liveCalc) ? false : true;
             if (buttonId === 'history') {
                 toggleState(target, 'state-inactive', 'state-active')
                 toggleState(historyPanel, 'opacity-0', 'opacity-1');
