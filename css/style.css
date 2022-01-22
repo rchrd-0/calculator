@@ -51,7 +51,7 @@ button:focus {
     flex-direction: column;
     justify-content: stretch;
     flex-wrap: wrap;
-    background-color: #4C566A;
+    background-color: #3B4252;
     color: #ECEFF4;
     padding: 10px 15px;
     border-radius: 0.5em;
@@ -80,6 +80,28 @@ button:focus {
     width: 100%;
     font-size: 32px;
 }
+
+.bottom-row {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+#history {
+    font-size: 16px;
+    border-radius: 0.75em;
+    border: none;
+    background-color: #4C566A;
+    color: inherit;
+}
+
+#running-display {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .buttons-container {
     min-width: 300px;
     max-height: 340px;
@@ -91,8 +113,8 @@ button:focus {
 }
 
 button.tools#equals {
-    /* min-width: 146px; */
-    /* flex: 2; */
+    min-width: 146px;
+    flex: 2;
     background-color: #8FBCBB;
 }
 
@@ -245,5 +267,9 @@ div.display.division-by-zero {
 
  .display-none {
      display: none;
+ }
+
+ .icon {
+     width: 20px;
  }
 

@@ -11,7 +11,10 @@
             <div class="calc-main">
                 <div class="displays-container">
                     <div class="display" id="input-display"></div>
-                    <div class="display" id="running-display"></div>
+                    <div class="display bottom-row">
+                        <div id="running-display"></div>
+                        <button id="history">&#10226;</button>
+                    </div>
                 </div>
                 <div class="buttons-container">
                     <button class="tools" id="clear">
@@ -19,10 +22,7 @@
                         <span class="keyboard-input display-none">esc</span>
                     </button>
                     <button class="tools" id="backspace">&#9003;</button>
-                    <button class="tools" id="history">
-                        <span>&#10226;</span>
-                        <span class="keyboard-input display-none">h</span>
-                        </button>
+                    <button class="tools" id="live-calc"><img class="icon" src="./img/lightbulb.png"></button>
                     <button class="operator" id="divide">
                         <span>÷</span>
                         <span class="keyboard-input display-none">/</span>
@@ -44,7 +44,6 @@
                     <button class="operator" id="add">+</button>
                     <button class="number" id="decimal-point">.</button>
                     <button class="number" id="number-0">0</button>
-                    <button class="tools" id="live-calc">!!</button>
                     <button class="tools state-inactive" id="equals">
                         <span>=</span>
                         <span class="keyboard-input display-none">return</span>

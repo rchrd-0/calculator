@@ -4,11 +4,11 @@ const buttonsContainer = container.querySelector('.buttons-container');
 const displays = [...container.getElementsByClassName('display')];
 const inputDisplay = container.querySelector('#input-display');
 const runningDisplay = container.querySelector('#running-display');
-const pasta = document.querySelector('.pasta');
 
+const historyButton = document.querySelector('#history');
 const historyPanel = document.querySelector('.history-panel');
 const historyDisplay = historyPanel.querySelector('ul');
-const historyButton = historyPanel.querySelector('.history-clear');
+const historyClearButton = historyPanel.querySelector('.history-clear');
 const historyMessage = historyPanel.querySelector('.history-message');
 
 function reset() {
@@ -298,7 +298,7 @@ function storeHistory(calculation) {
 
     if (!length) {
         historyDisplay.appendChild(li);
-        historyButton.classList.toggle('display-none');
+        historyClearButton.classList.toggle('display-none');
         historyMessage.classList.toggle('display-none');
     } else {
         historyDisplay.insertBefore(li, historyDisplay.firstElementChild);
@@ -374,6 +374,15 @@ document.addEventListener('keyup', event => {
         showHideKeyboard();
     } 
 });
+container.addEventListener('click', event => {
+    const target = event.target;
+    const buttonId = target.getAttribute('id')
+
+    if (buttonId === 'history') {
+        toggleState(target, 'state-inactive', 'state-active');
+        toggleState(historyPanel, 'opacity-0', 'opacity-1');
+    } 
+})
 buttonsContainer.addEventListener('click', event => {
     const tagName = event.target.tagName;
     const target = (tagName === 'SPAN') ? event.target.parentNode : event.target;
@@ -392,10 +401,10 @@ buttonsContainer.addEventListener('click', event => {
             if (buttonId === 'clear') reset();
             if (buttonId === 'equals') inputEquals('storeHistory');
             if (buttonId === 'live-calc') liveCalc = (liveCalc) ? false : true;
-            if (buttonId === 'history') {
-                toggleState(target, 'state-inactive', 'state-active')
-                toggleState(historyPanel, 'opacity-0', 'opacity-1');
-            }
+            // if (buttonId === 'history') {
+            //     toggleState(target, 'state-inactive', 'state-active')
+            //     toggleState(historyPanel, 'opacity-0', 'opacity-1');
+            // }
             break;
     }
 });
@@ -405,5 +414,5 @@ historyDisplay.addEventListener('click', event => {
 
     if (tag === 'DIV' || tag === 'LI') retrieveHistory(target, tag)
 })
-historyButton.addEventListener('click', clearHistory);
+historyClearButton.addEventListener('click', clearHistory);
 window.addEventListener('load', reset());
