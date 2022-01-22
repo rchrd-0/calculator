@@ -7,31 +7,31 @@
         <title>The Odin Project—Calculator</title>
     </head>
     <body>
-        <div class="container">
-            <div class="calc-main">
-                <div class="displays-container">
+        <div id="main-container">
+            <div id="calc-main">
+                <div id="displays-container">
                     <div class="display" id="input-display"></div>
-                    <div class="display bottom-row">
-                        <div id="running-display"></div>
-                        <button id="history">&#10226;</button>
+                    <div id="bottom-row">
+                        <span class="display" id="running-display"></span>
+                        <button id="toggle-history">&#10226;</button>
                     </div>
                 </div>
-                <div class="buttons-container">
+                <div id="buttons-container">
                     <button class="tools" id="clear">
-                        <span>C</span>
+                        <span class="keyboard-input">C</span>
                         <span class="keyboard-input display-none">esc</span>
                     </button>
                     <button class="tools" id="backspace">&#9003;</button>
                     <button class="tools" id="live-calc"><img class="icon" src="./img/lightbulb.png"></button>
                     <button class="operator" id="divide">
-                        <span>÷</span>
+                        <span class="keyboard-input">÷</span>
                         <span class="keyboard-input display-none">/</span>
                     </button>
                     <button class="number" id="number-7">7</button>
                     <button class="number" id="number-8">8</button>
                     <button class="number" id="number-9">9</button>
                     <button class="operator" id="multiply">
-                        <span>×</span>
+                        <span class="keyboard-input">×</span>
                         <span class="keyboard-input display-none">&#8727;</span>
                     </button>
                     <button class="number" id="number-6">6</button>
@@ -45,7 +45,7 @@
                     <button class="number" id="decimal-point">.</button>
                     <button class="number" id="number-0">0</button>
                     <button class="tools state-inactive" id="equals">
-                        <span>=</span>
+                        <span class="keyboard-input">=</span>
                         <span class="keyboard-input display-none">return</span>
                     </button>
                 </div>

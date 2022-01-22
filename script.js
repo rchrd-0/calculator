@@ -1,5 +1,5 @@
-const container = document.querySelector('.container');
-const buttonsContainer = container.querySelector('.buttons-container');
+const container = document.querySelector('#main-container');
+const buttonsContainer = container.querySelector('#buttons-container');
 
 const displays = [...container.getElementsByClassName('display')];
 const inputDisplay = container.querySelector('#input-display');
@@ -36,8 +36,8 @@ function calculate(operator, a, b) {
             break;
     }
     
-    result = parseFloat(result.toPrecision(10));
-    if (result.toString().length > 12) {
+    result = parseFloat(result.toPrecision(12));
+    if (result.toString().length > 13) {
         return result.toExponential()
     }
     return result;
@@ -91,7 +91,7 @@ function deleteInput() {
     const operatorList = [...buttonsContainer.getElementsByClassName('operator')];
     const first = displayValues.operand1;
     const second = displayValues.operand2;
-    
+    const resultExists = !isNaN(cache.result);
     const undoStoreValue = () => {
         cache.values.pop();
         input = (second) ? [...second] : [...first];
@@ -99,7 +99,7 @@ function deleteInput() {
 
     /* Backspacing on result will undo the operation clear on equals function, 
     also clears result */
-    if (!isNaN(cache.result) && cache.values.length === 2) {
+    if (resultExists && cache.values.length === 2) {
         let previousOperator = operatorList.find(operator => operator.innerText ===
             displayValues.operation);
         cache.operation[0] = previousOperator.id;
@@ -137,19 +137,13 @@ function inputNumber(num) {
 
     //Error handling
     switch (true) {
-        /* If division by zero state is active, any number input that isn't 0 
-        will reset this state */
         case (checkZero()):
             if (num !== '0') divideZero();
-            break; 
-        /* Inputting a number after a calculation has completed assumes user 
-        wishes to start a new calculation, therefore reset() */
-        case (resultExists && cache.values.length === 2):
-            reset();
-            break;
-        /* Trims leading zero */
         case (+num > 0):
             if (input.length === 1 && input[0] === '0') input.pop();
+            break;
+        case (resultExists && cache.values.length === 2):
+            reset();
             break;
     }
 
@@ -233,9 +227,10 @@ function inputEquals(type) {
     if (cache.values.length > 0 && input.length > 0) {
         storeValue();
         let operation = cache.operation.shift();
-        cache.result = calculate(operation, ...cache.values);
+        let output = calculate(operation, ...cache.values);
+        cache.result = (typeof output === 'string') ? Number(output) : output;
         runningDisplay.textContent = inputDisplay.textContent;
-        inputDisplay.textContent = cache.result;
+        inputDisplay.textContent = output;
         
         /* Stores calculation in history panel only when equals is explicitly 
         entered (ie. not an operator acting as equals) */
@@ -247,13 +242,13 @@ function inputEquals(type) {
     } else return
 }
 
-let checkZero = () => displays.some(div => div.classList.contains('division-by-zero'));
+let checkZero = () => displays.some(text => text.classList.contains('division-by-zero'));
 function divideZero(bool) {
     if (bool) {
-        displays.forEach(div => div.classList.add('division-by-zero'));
+        displays.forEach(text => text.classList.add('division-by-zero'));
         runningDisplay.textContent = `Can\'t divide by 0`;
     } else {
-        displays.forEach(div => div.classList.remove('division-by-zero'));
+        displays.forEach(text => text.classList.remove('division-by-zero'));
         runningDisplay.textContent = null;
     }
 }
@@ -271,8 +266,8 @@ function toggleState(element, ...states) {
 }
 
 function showHideKeyboard() {
-    const span = document.querySelectorAll('span');
-    span.forEach(sp => toggleState(sp, 'display-none'));
+    const inputKeys = document.querySelectorAll('.keyboard-input');
+    inputKeys.forEach(sp => toggleState(sp, 'display-none'));
 
 }
 
@@ -315,7 +310,7 @@ function clearHistory() {
     this.classList.toggle('display-none');
     historyMessage.classList.toggle('display-none');
 }
-function History(target, tag) {
+function retrieveHistory(target, tag) {
     reset();
     let item = (tag === 'DIV') ? target.parentNode : target
     let itemNum = item.id.slice(5); //calc-n as index number
@@ -346,7 +341,7 @@ document.addEventListener('keydown', event => {
         'Escape': 'clear',
         'Backspace': 'backspace',
         'Enter': 'equals',
-        'h': 'history',
+        'h': 'toggle-history',
     };
 
     if ((event.key === 'Enter')) event.preventDefault();
@@ -378,8 +373,7 @@ container.addEventListener('click', event => {
     const target = event.target;
     const buttonId = target.getAttribute('id')
 
-    if (buttonId === 'history') {
-        toggleState(target, 'state-inactive', 'state-active');
+    if (buttonId === 'toggle-history') {
         toggleState(historyPanel, 'opacity-0', 'opacity-1');
     } 
 })
