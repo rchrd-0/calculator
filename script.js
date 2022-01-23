@@ -1,11 +1,13 @@
 const container = document.querySelector('#main-container');
 const buttonsContainer = container.querySelector('#buttons-container');
+const displaysContainer = container.querySelector('#displays-container');
 
-const displays = [...container.getElementsByClassName('display')];
+const allDisplays = [...displaysContainer.getElementsByClassName('display')];
 const inputDisplay = container.querySelector('#input-display');
 const runningDisplay = container.querySelector('#running-display');
+const runningMessage = container.querySelector('#running-message')
 
-const historyButton = document.querySelector('#history');
+const historyButton = document.querySelector('#toggle-history');
 const historyPanel = document.querySelector('.history-panel');
 const historyDisplay = historyPanel.querySelector('ul');
 const historyClearButton = historyPanel.querySelector('.history-clear');
@@ -62,15 +64,7 @@ function updateDisplay(type, value) {
     }
 
     if (liveCalc && cache.operation.length) {
-        // let liveResult;
-        // if ((input.length < 1) || (cache.operation[0] === 'divide' && 
-        //         +input.join('') === 0)) { 
-        //     liveResult = null;
-        // } else {
-        //     liveResult = calculate(cache.operation[0], cache.values[0], +input.join(''));
-        // }
         runningDisplay.textContent = autoCalc();
-        // runningDisplay.textContent = liveResult;
     }
 
     inputDisplay.textContent = `${displayValues.operand1} ${displayValues.operation} ${displayValues.operand2}`;
@@ -78,7 +72,6 @@ function updateDisplay(type, value) {
 
 let liveCalc = false;
 function autoCalc() {
-    // let liveResult;
     if ((input.length < 1) || (cache.operation[0] === 'divide' && 
             +input.join('') === 0)) { 
         return null;
@@ -134,16 +127,15 @@ function deleteInput() {
 
 function inputNumber(num) {
     const resultExists = !isNaN(cache.result);
-
     //Error handling
     switch (true) {
+        case (resultExists && cache.values.length === 2):
+            reset();
+            break;
         case (checkZero()):
             if (num !== '0') divideZero();
         case (+num > 0):
             if (input.length === 1 && input[0] === '0') input.pop();
-            break;
-        case (resultExists && cache.values.length === 2):
-            reset();
             break;
     }
 
@@ -242,14 +234,16 @@ function inputEquals(type) {
     } else return
 }
 
-let checkZero = () => displays.some(text => text.classList.contains('division-by-zero'));
+let checkZero = () => allDisplays.some(text => text.classList.contains('division-by-zero'));
 function divideZero(bool) {
     if (bool) {
-        displays.forEach(text => text.classList.add('division-by-zero'));
-        runningDisplay.textContent = `Can\'t divide by 0`;
+        allDisplays.forEach(display => display.classList.add('division-by-zero'));
+        displayMessage('division', bool);
+        // runningDisplay.textContent = `Can\'t divide by 0`;
     } else {
-        displays.forEach(text => text.classList.remove('division-by-zero'));
-        runningDisplay.textContent = null;
+        allDisplays.forEach(display => display.classList.remove('division-by-zero'));
+        displayMessage('division', bool);
+        // runningDisplay.textContent = null;
     }
 }
 
@@ -267,8 +261,25 @@ function toggleState(element, ...states) {
 
 function showHideKeyboard() {
     const inputKeys = document.querySelectorAll('.keyboard-input');
-    inputKeys.forEach(sp => toggleState(sp, 'display-none'));
+    inputKeys.forEach(button => toggleState(button, 'display-none'));
+}
 
+function displayMessage(messageType, bool) {
+    switch (messageType) {
+        case 'division':
+            runningDisplay.textContent = (bool) ? `Can\'t divide by 0` : null
+            break;
+        case 'liveResult':
+            const bottomRow = [...displaysContainer.getElementsByTagName('span')];
+            const showHideMessage = () => bottomRow.forEach(span => span.classList.toggle('display-none'));
+            let onOff = (bool) ? 'ON' : 'OFF';
+            runningMessage.textContent = `Live results: ${onOff}`;
+            if (runningMessage.classList.contains('display-none')) {
+                showHideMessage();
+                setTimeout(showHideMessage, 1000);
+            }
+            break;
+    }
 }
 
 //History panel
@@ -374,16 +385,25 @@ container.addEventListener('click', event => {
     const buttonId = target.getAttribute('id')
 
     if (buttonId === 'toggle-history') {
+        toggleState(historyButton, 'history-active')
         toggleState(historyPanel, 'opacity-0', 'opacity-1');
     } 
 })
 buttonsContainer.addEventListener('click', event => {
     const tagName = event.target.tagName;
-    const target = (tagName === 'SPAN') ? event.target.parentNode : event.target;
+    if (tagName === 'DIV') return;
+    const target = (tagName === 'SPAN' || tagName === 'IMG') ? event.target.parentNode : 
+        event.target;
     const buttonType = target.getAttribute('class');
     const buttonId = target.getAttribute('id')
 
     switch (true) {
+        case (buttonId === 'live-calc'):
+            liveCalc = (liveCalc) ? false : true;
+            displayMessage('liveResult', liveCalc);
+            toggleState(target, 'live-active')
+            toggleState(runningMessage, 'status-on', 'status-off');
+            break;
         case (buttonType.includes('number')):
             inputNumber(target.textContent);
             break;
@@ -394,12 +414,8 @@ buttonsContainer.addEventListener('click', event => {
             if (buttonId === 'backspace') deleteInput();
             if (buttonId === 'clear') reset();
             if (buttonId === 'equals') inputEquals('storeHistory');
-            if (buttonId === 'live-calc') liveCalc = (liveCalc) ? false : true;
-            // if (buttonId === 'history') {
-            //     toggleState(target, 'state-inactive', 'state-active')
-            //     toggleState(historyPanel, 'opacity-0', 'opacity-1');
-            // }
             break;
+        default:
     }
 });
 historyDisplay.addEventListener('click', event => {

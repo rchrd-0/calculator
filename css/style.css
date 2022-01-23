@@ -14,8 +14,12 @@ body {
 }
 
 button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-family: inherit;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    color: #ECEFF4;
 }
 
 button:focus {
@@ -37,7 +41,7 @@ li {
 #calc-main {
     width: 340px;
     flex: none;
-    background-color: #E5E9F0;
+    background-color: #D8DEE9;
     padding: 20px;
     border-radius: 0.5em;
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
@@ -62,10 +66,10 @@ li {
     flex: 2;
     display: flex;
     align-items: center;
-    flex-direction: row-reverse;
     justify-content: space-between;
     gap: 8px;
-    color: #D8DEE9; 
+    color: #D8DEE9;
+    font-size: 20px;
 }
 
 #input-display {
@@ -74,21 +78,42 @@ li {
     align-items: center;
     justify-content: flex-end;
     text-overflow: clip;
-    font-size: 32px;
+    font-size: 32px
 }
 
 #running-display {
     text-overflow: ellipsis;
-    font-size: 20px;
 }
 
+.division-by-zero,
+.status-off {
+    color: #BF616A;
+}
+
+.status-on {
+    color: #8FBCBB;
+}
 
 button#toggle-history {
-    font-size: 16px;
-    border-radius: 50%;
-    border: none;
+    flex: none;
+    border: inherit;
+    width: 30px;
+    height: 30px;
+    border-radius: 25%;
+    background: url('../img/history-off.png');
+    background-size: 20px;
+    background-repeat: no-repeat;
+    background-position: 50%;
     background-color: #4C566A;
     color: inherit;
+}
+
+button#toggle-history.history-active {
+    background: url('../img/history-on.png');
+    background-size: 20px;
+    background-repeat: no-repeat;
+    background-position: 50%;
+    background-color: #D8DEE9;
 }
 
 #buttons-container {
@@ -96,51 +121,69 @@ button#toggle-history {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    font-size: 30px;
-    /* min-width: 300px; */
-    /* max-height: 340px; */
+    font-size: 32px;
 }
 
-#buttons-container button#equals {
-    min-width: 146px;
-    flex: 2;
-    background-color: #8FBCBB;
-}
 
-#buttons-container > button,
-.state-inactive {
+
+#buttons-container > button {
     min-width: 69px;
     min-height: 60px;
-    flex: 1;
     border: none;
-    font-size: 0.9em;
     border-radius: 10px;
     transition: all 0.08s ease;
 }
 
-#buttons-container button:active,
-.state-active {
-    font-size: 0.75em;
+#buttons-container button:active {
+    font-size: 0.8em;
     border-radius: 15px;
     transition: all 0.08s ease;
-    filter: brightness(0.75);
+    filter: brightness(0.8);
 }
 
 button.number {
+    font-size: 0.95em;
     background-color: #5E81AC; 
-    color: #E5E9F0;
+    /* color: #4C566A; */
 }
 
 button.operator {
+    color: #2E3440;
     background: #88C0D0;
     font-size: 1em;
 }
 
-
 button.tools {
-    color: #ECEFF4;
     background-color: #81A1C1;
+    font-size: 0.95em;
 }
+
+button#equals {
+    font-size: 1em;
+    min-width: 146px;
+    background-color: #8FBCBB;
+}
+
+button#live-calc {
+    background: url('../img/lightbulb-off.png') #81A1C1;
+    background-size: 28px;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+button#live-calc.live-active {
+    background: url('../img/lightbulb-on.png') #81A1C1;
+    background-size: 28px;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+
+
+
+
+
+
 
 .history-panel {
     min-width: 300px;
@@ -237,9 +280,6 @@ div.history-panel > button:active {
     font-size: 20px;
 }
 
-.division-by-zero {
-    color: #BF616A;
-}
 
  span.inactive {
      display: none;
@@ -251,9 +291,5 @@ div.history-panel > button:active {
 
  .display-none {
      display: none;
- }
-
- .icon {
-     width: 20px;
  }
 
