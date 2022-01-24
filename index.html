@@ -7,67 +7,77 @@
         <title>The Odin Project—Calculator</title>
     </head>
     <body>
-        <div id="main-container">
-            <div id="calc-main">
-                <div id="displays-container">
-                    <div class="display" id="input-display"></div>
-                    <div id="bottom-row">
-                        <button id="toggle-history"></button>
-                        <span class="display" id="running-display"></span>
-                        <span class="display display-none status-off" id="running-message"></span></span>
+        <div id="page-container">
+            <main>
+                <div id="calculator">
+                    <div id="displays-container">
+                        <div class="display" id="input-display"></div>
+                        <div id="bottom-row">
+                            <button class="icon-btn" id="toggle-history"></button>
+                            <span class="display" id="running-display"></span>
+                            <span class="display display-none status-off" id="running-message">
+                        </div>
+                    </div>
+                    <div id="buttons-container">
+                        <button class="tools" id="clear">
+                            <span class=>C</span>
+                            <span class="keyboard-input display-none">esc</span>
+                        </button>
+                        <button class="tools" id="backspace">
+                            <span>&#9003;</span>
+                            <span class="keyboard-input display-none">del / bksp</span>
+                            </button>
+                        <button class ="tools icon-btn" id="live-calc">
+                            <span class="display-none">A</span>
+                        </button>
+                        <button class="operator" id="divide">
+                            <span class=>÷</span>
+                            <span class="keyboard-input display-none">/</span>
+                        </button>
+                        <button class="number" id="number-7">7</button>
+                        <button class="number" id="number-8">8</button>
+                        <button class="number" id="number-9">9</button>
+                        <button class="operator" id="multiply">
+                            <span>×</span>
+                            <span class="keyboard-input display-none">&#8727;</span>
+                        </button>
+                        <button class="number" id="number-6">6</button>
+                        <button class="number" id="number-5">5</button>
+                        <button class="number" id="number-4">4</button>
+                        <button class="operator" id="subtract">-</button>
+                        <button class="number" id="number-3">3</button>
+                        <button class="number" id="number-2">2</button>
+                        <button class="number" id="number-1">1</button>
+                        <button class="operator" id="add">+</button>
+                        <button class="number" id="decimal-point">.</button>
+                        <button class="number" id="number-0">0</button>
+                        <button class="tools" id="equals">
+                            <span class=>=</span>
+                            <span class="keyboard-input display-none">return / enter</span>
+                        </button>
                     </div>
                 </div>
-                <div id="buttons-container">
-                    <button class="tools" id="clear">
-                        <span class=>C</span>
-                        <span class="keyboard-input display-none">esc</span>
-                    </button>
-                    <button class="tools" id="backspace">
-                        <span>&#9003;</span>
-                        <span class="keyboard-input display-none">del / bksp</span>
-                        </button>
-                    <button class ="tools" id="live-calc"></button>
-                    <button class="operator" id="divide">
-                        <span class=>÷</span>
-                        <span class="keyboard-input display-none">/</span>
-                    </button>
-                    <button class="number" id="number-7">7</button>
-                    <button class="number" id="number-8">8</button>
-                    <button class="number" id="number-9">9</button>
-                    <button class="operator" id="multiply">
-                        <span>×</span>
-                        <span class="keyboard-input display-none">&#8727;</span>
-                    </button>
-                    <button class="number" id="number-6">6</button>
-                    <button class="number" id="number-5">5</button>
-                    <button class="number" id="number-4">4</button>
-                    <button class="operator" id="subtract">-</button>
-                    <button class="number" id="number-3">3</button>
-                    <button class="number" id="number-2">2</button>
-                    <button class="number" id="number-1">1</button>
-                    <button class="operator" id="add">+</button>
-                    <button class="number" id="decimal-point">.</button>
-                    <button class="number" id="number-0">0</button>
-                    <button class="tools" id="equals">
-                        <span class=>=</span>
-                        <span class="keyboard-input display-none">return/enter</span>
-                    </button>
+                <div class="opacity-0" id="history-panel">
+                    <button class="display-none" id="history-clear">Clear history</button>
+                    <div id="history-message">Your calculations will be stored here</div>
+                    <ul></ul>
                 </div>
-            </div>
-            <div class="opacity-0" id="history-panel">
-                <button class="display-none" id="history-clear">Clear history</button>
-                <div id="history-message">Your calculations will be stored here</div>
-                <ul></ul>
-            </div>
-            <div id="help-wrapper">
-                <div class="opacity-0" id="help-container">
-                    <button id="help-button"></button>
-                        <div>
-                            <p>Hold <span>Q</span> to view keyboard inputs</p>
-                            <p>Toggle the history panel with <span>H</span></p>
-                        </div>
+                <div id="help-wrapper">
+                    <div class="opacity-0" id="help-container">
+                        <button id="help-button"></button>
+                            <div>
+                                <p>Hold <span class="emphasis">Q</span> to view keyboard inputs</p>
+                                <p>Toggle the history panel with <span class="emphasis">H</span></p>
+                            </div>
+                    </div>
                 </div>
-            </div>
+            </main>
+            <footer>
+                <div>
+                Made by <a href="https://github.com/rchrd-0" target="_blank" class="emphasis">RCHRD</a>
+                for <a href="https://www.theodinproject.com" target="_blank" class="emphasis">The Odin Project</a> ; 2022</div>
+                </div>
+            </footer>
         </div>
     </body>
 </html>

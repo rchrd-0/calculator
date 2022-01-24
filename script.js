@@ -1,4 +1,5 @@
-const container = document.querySelector('#main-container');
+const container = document.querySelector('main');
+const calculator = container.querySelector('#calculator');
 const buttonsContainer = container.querySelector('#buttons-container');
 const displaysContainer = container.querySelector('#displays-container');
 
@@ -7,6 +8,7 @@ const inputDisplay = container.querySelector('#input-display');
 const runningDisplay = container.querySelector('#running-display');
 const runningMessage = container.querySelector('#running-message')
 
+const historyButton = document.querySelector('#toggle-history');
 const historyPanel = document.querySelector('#history-panel');
 const historyDisplay = historyPanel.querySelector('ul');
 const historyClearButton = historyPanel.querySelector('#history-clear');
@@ -234,10 +236,12 @@ function toggleState(element, ...states) {
 }
 
 function showHideKeyboard() {
+    const iconButtons = calculator.querySelectorAll('.icon-btn');
     const inputKeys = buttonsContainer.querySelectorAll('span');
-    const allButtons = buttonsContainer.querySelectorAll('button');
+    const calcButtons = buttonsContainer.querySelectorAll('button');
     inputKeys.forEach(button => toggleState(button, 'display-none'));
-    allButtons.forEach(button => toggleState(button, 'brightness-down'));
+    calcButtons.forEach(button => toggleState(button, 'brightness-up'));
+    iconButtons.forEach(button => toggleState(button, 'no-icon'));
 }
 
 function displayMessage(messageType, bool) {
@@ -246,7 +250,7 @@ function displayMessage(messageType, bool) {
             runningDisplay.textContent = (bool) ? `Can\'t divide by 0` : null
             break;
         case 'liveResult':
-            const bottomRow = [...displaysContainer.getElementsByTagName('span')];
+            const bottomRow = [...displaysContainer.getElementsByClassName('display')];
             const showHideMessage = () => bottomRow.forEach(span => span.classList.toggle('display-none'));
             let onOff = (bool) ? 'ON' : 'OFF';
             runningMessage.textContent = `Live results: ${onOff}`;
@@ -318,7 +322,6 @@ function retrieveHistory(target, tag) {
 //Event listeners
 container.addEventListener('click', event => {
     const target = event.target;
-    const historyButton = document.querySelector('#toggle-history');
     const buttonId = target.getAttribute('id')
 
     if (buttonId === 'toggle-history') {
@@ -380,8 +383,10 @@ document.addEventListener('keydown', event => {
         '/': 'divide',
         'Escape': 'clear',
         'Backspace': 'backspace',
+        'Delete': 'backspace',
         'Enter': 'equals',
-        'h': 'toggle-history'
+        'h': 'toggle-history',
+        'a': 'live-calc'
     };
 
     if (helpPrompt.classList.contains('opacity-0')) {

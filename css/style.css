@@ -5,13 +5,11 @@
 }
 
 body {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
     font-family: 'Rubik', Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 100px 0 0 75px;
-    min-height: 100vh;
-    background-image: url('../img/background.svg');
-    background-repeat: no-repeat;
+    background: url('../img/background.svg') no-repeat fixed;
     background-size: cover;
 }
 
@@ -53,61 +51,29 @@ p {
     transition: opacity 0.4s ease;
 }
 
-.brightness-down {
-    filter: grayscale(0.2) opacity(0.9);
+#buttons-container button.brightness-up {
+    color: #3B4252;
+    filter: brightness(1.08);
 }
 
-#main-container {
-    max-width: 670px;
+#page-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+}
+
+main {
+    max-width: 720px;
+    padding: 100px 0 0 50px;
     display: flex;
     flex-wrap: wrap;
     gap: 30px;
     margin: 0 auto;
 }
 
-#help-container {
-    max-width: 340px;
-    max-height: fit-content;
-    padding: 15px 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-radius: 10px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-    background-color: #4C566A;
-    font-size: 18px;
-    font-weight: 300;
-    color: #ECEFF4;
-}
-
-#help-container span {
-    font-weight: 500;
-    color: #88C0D0;
-}
-
-#help-button {
-    width: 36px;
-    height: 36px;
-    background: url('../img/help-btn.png') #88C0D0;
-    background-position: 50%;
-    background-size: 24px;
-    background-repeat: no-repeat;
-    border-radius: 12px;
-    transition: background-color 0.1s ease;
-}
-
-#help-button:hover,
-#help-button:active {
-    background: url('../img/close-btn.png')  #BF616A;
-    background-position: 50%;
-    background-size: 24px;
-    background-repeat: no-repeat;
-    transition: background-color 0.1s ease;
-}
-
-#calc-main {
+#calculator {
     width: 340px;
-    flex: none;
     background-color: #D8DEE9;
     padding: 20px;
     border-radius: 15px;
@@ -209,7 +175,7 @@ button.number {
 
 button.operator {
     font-size: 1em;
-    color: #2E3440;
+    /* color: #2E3440; */
     background: #88C0D0;
 }
 
@@ -218,14 +184,14 @@ button.tools {
     background-color: #81A1C1;
 }
 
-button#live-calc {
+#live-calc {
     background: url('../img/lightbulb.png') #81A1C1;
     background-size: 28px;
     background-repeat: no-repeat;
     background-position: 50%;
 }
 
-button#live-calc.live-active {
+#live-calc.live-active {
     background: url('../img/lightbulb-filled.png') #81A1C1;
     background-size: 28px;
     background-repeat: no-repeat;
@@ -236,6 +202,24 @@ button#equals {
     min-width: 146px;
     font-size: 1em;
     background-color: #8FBCBB;
+}
+
+#backspace span.keyboard-input {
+    padding: 10px;
+    font-size: 15px;
+}
+
+#clear span.keyboard-input {
+    font-size: 24px;
+}
+
+#equals span.keyboard-input {
+    font-size: 20px;
+}
+
+#live-calc.no-icon,
+#live-calc.live-active.no-icon {
+    background-image: none;
 }
 
 #history-panel {
@@ -322,15 +306,63 @@ button#equals {
     font-size: 20px;
 }
 
-#backspace span.keyboard-input {
-    padding: 10px;
-    font-size: 15px;
+#help-container {
+    max-width: 340px;
+    max-height: fit-content;
+    padding: 15px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    background-color: rgba(76, 86, 106, 0.8);
+    font-size: 18px;
+    font-weight: 300;
+    color: #ECEFF4;
 }
 
-#clear span.keyboard-input {
-    font-size: 24px;
+.emphasis {
+    font-weight: 500;
+    color: #88C0D0;
 }
 
-#equals span.keyboard-input {
+#help-button {
+    width: 36px;
+    height: 36px;
+    background: url('../img/help-btn.png') #88C0D0;
+    background-position: 50%;
+    background-size: 24px;
+    background-repeat: no-repeat;
+    border-radius: 12px;
+    transition: background-color 0.1s ease;
+}
+
+#help-button:hover,
+#help-button:active {
+    background: url('../img/close-btn.png')  #BF616A;
+    background-position: 50%;
+    background-size: 24px;
+    background-repeat: no-repeat;
+    transition: background-color 0.1s ease;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+footer {
+    margin-top: 50px;
+    padding-bottom: 30px;
+    display: flex;
+    justify-content: center;
     font-size: 20px;
+    color: #ECEFF4;
+}
+
+footer div {
+    background-color: rgba(76, 86, 106, 0.4);
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
