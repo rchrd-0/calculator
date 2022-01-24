@@ -7,11 +7,12 @@ const inputDisplay = container.querySelector('#input-display');
 const runningDisplay = container.querySelector('#running-display');
 const runningMessage = container.querySelector('#running-message')
 
-const historyButton = document.querySelector('#toggle-history');
-const historyPanel = document.querySelector('.history-panel');
+const historyPanel = document.querySelector('#history-panel');
 const historyDisplay = historyPanel.querySelector('ul');
-const historyClearButton = historyPanel.querySelector('.history-clear');
-const historyMessage = historyPanel.querySelector('.history-message');
+const historyClearButton = historyPanel.querySelector('#history-clear');
+const historyMessage = historyPanel.querySelector('#history-message');
+
+const helpPrompt = document.querySelector('#help-container');
 
 function reset() {
     cache = {values: [], operation: [], result: null};
@@ -90,8 +91,6 @@ function deleteInput() {
         input = (second) ? [...second] : [...first];
     }
 
-    /* Backspacing on result will undo the operation clear on equals function, 
-    also clears result */
     if (resultExists && cache.values.length === 2) {
         let previousOperator = operatorList.find(operator => operator.innerText ===
             displayValues.operation);
@@ -103,8 +102,6 @@ function deleteInput() {
         return;
     }
 
-    /* Determines what to delete/backspace by checking existence of the following 
-    in order: operand2, operator, operand1 */
     if (second) {
         displayValues.operand2 = [...second]
             .slice(0, second.length - 1)
@@ -141,13 +138,10 @@ function inputNumber(num) {
 
     switch (num) {
         case ('.'):
-            //Only 1 decimal point allowed per operand
             if (input.includes('.')) return;
-            //If decimal point entered before number input, assumes 0.n
             if (input.length === 0) input.push('0'); 
             break;
         case ('0'):
-            //Only allows 1 leading zero
             if (input.length === 1 && input[0] === '0') return;
     }
 
@@ -163,7 +157,6 @@ function inputOperation(operator) {
         multiply: '×',
         divide: '÷',
     }
-
     if (checkZero()) {
         if (operator === 'divide') return;
         else {
@@ -173,35 +166,20 @@ function inputOperation(operator) {
             return;
         }
     }
-
-    /* If user inputs an operator without first entering a number, assumes 0 to 
-        be first operand */
     if (input.length === 0 && !cache.values.length) {
         input.push('0');
         updateDisplay('number');        
     }
-
-    /* Modifying operators: allowed only if the first operand has been entered.
-    If the second operand has already been entered (ie. operand1 + operator1 + operand2), 
-    assumes user intends to string calculations and will instead store operator2 
-    in cache object for later */ 
     if (cache.values.length === 1 && !input.length) {
         cache.operation.splice(0, cache.operation.length, operator);
     } else {
         cache.operation.push(operator);
     }
-
-    /* Stringing multiple calculations without explicitly clicking the equals button:
-    Requires (1) operand1 has been stored in cache and operand2 has been inputted
-    (2) cache.operation array contains relevant operations */
     if (input.length > 0 && Boolean(cache.operation) && cache.values.length === 1) {
         inputEquals();
         cache.values.splice(0, 2, cache.result);
         updateDisplay('pushResult', cache.result);
     } else storeValue();
-
-    /* Allows user to use the result of a single calculation (1 + 2 = 3) in subsequent 
-    calculations if they input an operator (1 + 2 = 3 ==> 3 + ... */
     if (resultExists && cache.values.length === 2) {
         cache.values.splice(0, 2, cache.result);
         updateDisplay('pushResult', cache.result);
@@ -224,8 +202,6 @@ function inputEquals(type) {
         runningDisplay.textContent = inputDisplay.textContent;
         inputDisplay.textContent = output;
         
-        /* Stores calculation in history panel only when equals is explicitly 
-        entered (ie. not an operator acting as equals) */
         if (type === 'storeHistory') {
             let calculation = {...displayValues};
             calculation['result'] = cache.result;
@@ -239,11 +215,9 @@ function divideZero(bool) {
     if (bool) {
         allDisplays.forEach(display => display.classList.add('division-by-zero'));
         displayMessage('division', bool);
-        // runningDisplay.textContent = `Can\'t divide by 0`;
     } else {
         allDisplays.forEach(display => display.classList.remove('division-by-zero'));
         displayMessage('division', bool);
-        // runningDisplay.textContent = null;
     }
 }
 
@@ -260,8 +234,10 @@ function toggleState(element, ...states) {
 }
 
 function showHideKeyboard() {
-    const inputKeys = document.querySelectorAll('.keyboard-input');
+    const inputKeys = buttonsContainer.querySelectorAll('span');
+    const allButtons = buttonsContainer.querySelectorAll('button');
     inputKeys.forEach(button => toggleState(button, 'display-none'));
+    allButtons.forEach(button => toggleState(button, 'brightness-down'));
 }
 
 function displayMessage(messageType, bool) {
@@ -281,7 +257,6 @@ function displayMessage(messageType, bool) {
             break;
     }
 }
-
 //History panel
 const calcHistory = [];
 function storeHistory(calculation) {
@@ -300,7 +275,7 @@ function storeHistory(calculation) {
     resultItem.setAttribute('class', 'result-item');
 
     li.setAttribute('id', calcNum);
-    li.append(calcItem, resultItem);
+    li.append(resultItem, calcItem);
 
     if (!length) {
         historyDisplay.appendChild(li);
@@ -341,53 +316,22 @@ function retrieveHistory(target, tag) {
 }
 
 //Event listeners
-document.addEventListener('keydown', event => {
-    const eventKey = event.key;
-    const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
-    const buttonMap = {
-        '+': 'add',
-        '-': 'subtract',
-        '*': 'multiply',
-        '/': 'divide',
-        'Escape': 'clear',
-        'Backspace': 'backspace',
-        'Enter': 'equals',
-        'h': 'toggle-history',
-    };
-
-    if ((event.key === 'Enter')) event.preventDefault();
-    if ((event.key === 'h' || event.key === 'q') && event.repeat) return;
-    if (event.key === 'q') showHideKeyboard();
-
-    let mappedButton;
-    if (numbers.includes(eventKey)) {
-        if (eventKey === '.') {
-            mappedButton = document.getElementById('decimal-point');
-        } else {
-            mappedButton = document.getElementById(`number-${eventKey}`);
-        }
-    }
-    if (Object.keys(buttonMap).includes(eventKey)) {
-        let buttonId = buttonMap[eventKey];
-        mappedButton = document.getElementById(buttonId);
-    }
-
-    if (mappedButton) mappedButton.click();
-});
-document.addEventListener('keyup', event => {
-    if (event.key === 'q') {
-        if (event.repeat) return;
-        showHideKeyboard();
-    } 
-});
 container.addEventListener('click', event => {
     const target = event.target;
+    const historyButton = document.querySelector('#toggle-history');
     const buttonId = target.getAttribute('id')
 
     if (buttonId === 'toggle-history') {
         toggleState(historyButton, 'history-active')
         toggleState(historyPanel, 'opacity-0', 'opacity-1');
-    } 
+    }
+    if (buttonId === 'help-button') {
+        toggleState(helpPrompt, 'opacity-1', 'opacity-0');
+        setTimeout(function() {
+            helpPrompt.classList.remove('opacity-0');
+            helpPrompt.parentNode.classList.add('display-none');
+        }, 150)
+    }
 })
 buttonsContainer.addEventListener('click', event => {
     const tagName = event.target.tagName;
@@ -425,4 +369,47 @@ historyDisplay.addEventListener('click', event => {
     if (tag === 'DIV' || tag === 'LI') retrieveHistory(target, tag)
 })
 historyClearButton.addEventListener('click', clearHistory);
-window.addEventListener('load', reset());
+//Keyboard input
+document.addEventListener('keydown', event => {
+    const eventKey = event.key;
+    const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
+    const buttonMap = {
+        '+': 'add',
+        '-': 'subtract',
+        '*': 'multiply',
+        '/': 'divide',
+        'Escape': 'clear',
+        'Backspace': 'backspace',
+        'Enter': 'equals',
+        'h': 'toggle-history'
+    };
+
+    if (helpPrompt.classList.contains('opacity-0')) {
+        toggleState(helpPrompt, 'opacity-0', 'opacity-1');
+    }
+    if ((event.key === 'Enter')) event.preventDefault();
+    if ((event.key === 'h' || event.key === 'q') && event.repeat) return;
+    if (event.key === 'q') showHideKeyboard();
+
+    let mappedButton;
+    if (numbers.includes(eventKey)) {
+        if (eventKey === '.') {
+            mappedButton = document.getElementById('decimal-point');
+        } else {
+            mappedButton = document.getElementById(`number-${eventKey}`);
+        }
+    }
+    if (Object.keys(buttonMap).includes(eventKey)) {
+        let buttonId = buttonMap[eventKey];
+        mappedButton = document.getElementById(buttonId);
+    }
+
+    if (mappedButton) mappedButton.click();
+});
+document.addEventListener('keyup', event => {
+    if (event.key === 'q') {
+        if (event.repeat) return;
+        showHideKeyboard();
+    } 
+});
+window.addEventListener('load', reset);

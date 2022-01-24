@@ -19,20 +19,23 @@
                 </div>
                 <div id="buttons-container">
                     <button class="tools" id="clear">
-                        <span class="keyboard-input">C</span>
+                        <span class=>C</span>
                         <span class="keyboard-input display-none">esc</span>
                     </button>
-                    <button class="tools" id="backspace">&#9003;</button>
+                    <button class="tools" id="backspace">
+                        <span>&#9003;</span>
+                        <span class="keyboard-input display-none">del / bksp</span>
+                        </button>
                     <button class ="tools" id="live-calc"></button>
                     <button class="operator" id="divide">
-                        <span class="keyboard-input">÷</span>
+                        <span class=>÷</span>
                         <span class="keyboard-input display-none">/</span>
                     </button>
                     <button class="number" id="number-7">7</button>
                     <button class="number" id="number-8">8</button>
                     <button class="number" id="number-9">9</button>
                     <button class="operator" id="multiply">
-                        <span class="keyboard-input">×</span>
+                        <span>×</span>
                         <span class="keyboard-input display-none">&#8727;</span>
                     </button>
                     <button class="number" id="number-6">6</button>
@@ -46,15 +49,24 @@
                     <button class="number" id="decimal-point">.</button>
                     <button class="number" id="number-0">0</button>
                     <button class="tools" id="equals">
-                        <span class="keyboard-input">=</span>
-                        <span class="keyboard-input display-none">return</span>
+                        <span class=>=</span>
+                        <span class="keyboard-input display-none">return/enter</span>
                     </button>
                 </div>
             </div>
-            <div class="history-panel opacity-0">
-                <button class="history-clear display-none">Clear history</button>
-                <div class="history-message">Your calculations will be stored here</div>
+            <div class="opacity-0" id="history-panel">
+                <button class="display-none" id="history-clear">Clear history</button>
+                <div id="history-message">Your calculations will be stored here</div>
                 <ul></ul>
+            </div>
+            <div id="help-wrapper">
+                <div class="opacity-0" id="help-container">
+                    <button id="help-button"></button>
+                        <div>
+                            <p>Hold <span>Q</span> to view keyboard inputs</p>
+                            <p>Toggle the history panel with <span>H</span></p>
+                        </div>
+                </div>
             </div>
         </div>
     </body>
