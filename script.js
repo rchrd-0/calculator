@@ -122,7 +122,7 @@ function inputOperation(newOperator) {
         updateDisplay('number');        
     }
     if (valuesStored === 1 && !inputExists) {
-        memory.operator.splice(0, memory.operator.length, newOperator);1
+        memory.operator.splice(0, memory.operator.length, newOperator);
     } else {
         memory.operator.push(newOperator);
     }
