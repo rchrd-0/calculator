@@ -51,9 +51,9 @@ p {
     transition: opacity 0.4s ease;
 }
 
-#buttons-container button.brightness-up {
-    color: #3B4252;
-    filter: brightness(1.08);
+.emphasis {
+    font-weight: 500;
+    color: #88C0D0;
 }
 
 #page-container {
@@ -168,6 +168,11 @@ button#toggle-history.history-active {
     filter: brightness(0.75);
 }
 
+#buttons-container button.brightness-up {
+    color: #3B4252;
+    filter: brightness(1.08);
+}
+
 button.number {
     font-size: 0.95em;
     background-color: #5E81AC; 
@@ -184,14 +189,14 @@ button.tools {
     background-color: #81A1C1;
 }
 
-#live-calc {
+#live-results {
     background: url('../img/lightbulb.png') #81A1C1;
     background-size: 28px;
     background-repeat: no-repeat;
     background-position: 50%;
 }
 
-#live-calc.live-active {
+#live-results.live-active {
     background: url('../img/lightbulb-filled.png') #81A1C1;
     background-size: 28px;
     background-repeat: no-repeat;
@@ -217,8 +222,8 @@ button#equals {
     font-size: 20px;
 }
 
-#live-calc.no-icon,
-#live-calc.live-active.no-icon {
+#live-results.no-icon,
+#live-result.live-active.no-icon {
     background-image: none;
 }
 
@@ -277,7 +282,6 @@ button#equals {
     padding: 7.5px 10px;
     border: 1px solid #3B4252;
     border-radius: 10px;
-    color: #3B4252;
 }
 
 #history-panel li > div {
@@ -286,24 +290,32 @@ button#equals {
     text-overflow: ellipsis;
 }
 
+#history-panel div.calc-item {
+    font-size: 14px;
+    color: #4C566A;
+}
+
+#history-panel div.result-item {
+    font-size: 20px;
+    color: #2E3440;
+}
+
 #history-panel li:hover {
     background-color: #3B4252;
-    color: #ECEFF4;
     transition: all 0.5s ease;
+}
+
+#history-panel li:hover div:first-child {
+    color: #ECEFF4;
+}
+
+#history-panel li:hover div:nth-child(2) {
+    color: #D8DEE9;
 }
 
 #history-panel li:active {
     background-color: #4C566A;
-    color: #D8DEE9;
     transition: all 0.01s ease;
-}
-
-.calc-item {
-    font-size: 14px;
-}
-
-.result-item {
-    font-size: 20px;
 }
 
 #help-container {
@@ -319,11 +331,6 @@ button#equals {
     font-size: 18px;
     font-weight: 300;
     color: #ECEFF4;
-}
-
-.emphasis {
-    font-weight: 500;
-    color: #88C0D0;
 }
 
 #help-button {
@@ -363,6 +370,6 @@ footer {
 footer div {
     background-color: rgba(76, 86, 106, 0.4);
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }

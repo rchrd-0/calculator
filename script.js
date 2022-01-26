@@ -1,12 +1,12 @@
-const container = document.querySelector('main');
-const calculator = container.querySelector('#calculator');
-const buttonsContainer = container.querySelector('#buttons-container');
-const displaysContainer = container.querySelector('#displays-container');
+const main = document.querySelector('main');
+const calculator = main.querySelector('#calculator');
+const buttonsContainer = main.querySelector('#buttons-container');
+const displaysContainer = main.querySelector('#displays-container');
 
 const allDisplays = [...displaysContainer.getElementsByClassName('display')];
-const inputDisplay = container.querySelector('#input-display');
-const runningDisplay = container.querySelector('#running-display');
-const runningMessage = container.querySelector('#running-message')
+const inputDisplay = main.querySelector('#input-display');
+const runningDisplay = main.querySelector('#running-display');
+const runningMessage = main.querySelector('#running-message')
 
 const historyButton = document.querySelector('#toggle-history');
 const historyPanel = document.querySelector('#history-panel');
@@ -16,11 +16,12 @@ const historyMessage = historyPanel.querySelector('#history-message');
 
 const helpPrompt = document.querySelector('#help-container');
 
+//Basic calculator functions
 function reset() {
-    cache = {values: [], operation: [], result: null};
-    displayValues = {operand1: '', operation: '', operand2: ''};
+    memory = {values: [], operator: [], result: null};
+    displayValues = {operand1: '', operator: '', operand2: ''};
     input = [];
-    divideZero();
+    divideZero(false);
     updateDisplay();
 }
 
@@ -48,72 +49,184 @@ function calculate(operator, a, b) {
     return result;
 }
 
+function inputNumber(value) {
+    const resultExists = memory.result !== null;
+    
+    switch (true) {
+        //Error handling
+        case (resultExists && memory.values.length === 2):
+            reset();
+            break;
+        case (checkZero()): //0 division handling
+            if (value !== '0') divideZero(false); //Break omitted
+        case (value !== '0'): //Leading 0 handling
+            if (input.length === 1 && input.includes('0')) input.pop();
+            break;
+    }
+
+    switch (value) {
+        case ('.'):
+            if (input.includes('.')) return;
+            if (input.length === 0) input.push('0'); 
+            break;
+        case ('0'):
+            if (input.length === 1 && input.includes('0')) return;
+            break;
+    }
+
+    input.push(value);
+    updateDisplay('number');
+}
+
+function storeValue() {
+    if (input.length > 0) {
+            memory.values.push(
+                +input.splice(0, input.length)
+                .join('')
+            );
+        }
+}
+
+function inputOperation(newOperator) {
+    const resultExists = memory.result !== null;
+    const inputExists = input.length;
+    const operatorExists = memory.operator.length;
+    const valuesStored = memory.values.length;
+    const pushResult = () => {
+        memory.values.splice(0, 2, Number(memory.result));
+        updateDisplay('result', memory.result);
+    }
+    const operatorMap = {
+        add: '+',
+        subtract: '-',
+        multiply: '×',
+        divide: '÷',
+    }
+    const displayOperator = operatorMap[newOperator]
+
+    //0 division handling
+    if (checkZero()) { 
+        if (newOperator !== 'divide') {
+            divideZero(false);
+            memory.operator.splice(0, 1, newOperator);
+            updateDisplay('operator', displayOperator);
+            return;
+        } else {
+            return
+        }
+    }
+
+    //Operator input on empty value assumes 0 as first operand
+    if (!valuesStored && !inputExists) {
+        input.push('0');
+        updateDisplay('number');        
+    }
+    if (valuesStored === 1 && !inputExists) {
+        memory.operator.splice(0, memory.operator.length, newOperator);1
+    } else {
+        memory.operator.push(newOperator);
+    }
+    // Allows stringing calculations without explicitly pressing equals
+    if (inputExists && operatorExists && valuesStored === 1) {
+        inputEquals();
+        pushResult();
+    } else {
+        storeValue();
+    }
+    //Allows use of the previous calculation's result in the subsequent calculation
+    if (resultExists && valuesStored === 2) {
+        pushResult();
+    }
+
+    updateDisplay('operator', displayOperator);
+}
+
+function inputEquals(type) {
+    //0 division handling
+    let [firstOperation] = memory.operator;
+    if (firstOperation === 'divide' && parseFloat(input.join('')) === 0) {
+        divideZero(true);
+        return;
+    }
+
+    if (memory.values.length > 0 && input.length > 0) {
+        storeValue();
+        let operator = memory.operator.shift();
+        let output = calculate(operator, ...memory.values);
+        memory.result = (typeof output === 'string') ? Number(output) : output;
+        runningDisplay.textContent = inputDisplay.textContent;
+        inputDisplay.textContent = output;
+        //Stores calculation in history panel if equals is explicitly pressed
+        if (type === 'storeHistory') {
+            let calculation = {...displayValues};
+            calculation.result = output;
+            storeHistory(calculation);
+        }
+    } else return
+}
+
 function updateDisplay(type, value) {
     switch (type) {
         case 'number': 
-            if (displayValues.operation) {
-                displayValues.operand2 = [...input].join('');
+            value = [...input].join('')
+            //Checks existence of operator to determine whether input is operand1 or operand2
+            if (displayValues.operator) {
+                displayValues.operand2 = value;
             } else {
-                displayValues.operand1 = [...input].join('');
+                displayValues.operand1 = value;
             }
             break;
-        case 'pushResult': 
+        case 'result': 
             displayValues.operand1 = String(value);
             displayValues.operand2 = '';
             break;
         case 'operator':
-            displayValues.operation = value;
+            displayValues.operator = value;
             break;
     }
+    let calculation = `${displayValues.operand1} 
+        ${displayValues.operator} 
+        ${displayValues.operand2}`;
 
-    if (liveCalc && cache.operation.length) {
+    if (liveResults && memory.operator.length) {
         runningDisplay.textContent = autoCalc();
     }
 
-    inputDisplay.textContent = `${displayValues.operand1} ${displayValues.operation} ${displayValues.operand2}`;
-}
-
-let liveCalc = false;
-function autoCalc() {
-    if ((input.length < 1) || (cache.operation[0] === 'divide' && 
-            +input.join('') === 0)) { 
-        return null;
-    } else {
-        return calculate(cache.operation[0], cache.values[0], +input.join(''));
-    }
+    inputDisplay.textContent = calculation;
 }
 
 function deleteInput() {
     const operatorList = [...buttonsContainer.getElementsByClassName('operator')];
     const first = displayValues.operand1;
     const second = displayValues.operand2;
-    const resultExists = !isNaN(cache.result);
+    const resultExists = memory.result !== null;
     const undoStoreValue = () => {
-        cache.values.pop();
+        memory.values.pop();
         input = (second) ? [...second] : [...first];
     }
 
-    if (resultExists && cache.values.length === 2) {
+    //Handles backspacing on a completed calculation
+    if (resultExists && memory.values.length === 2) {
         let previousOperator = operatorList.find(operator => operator.innerText ===
-            displayValues.operation);
-        cache.operation[0] = previousOperator.id;
-        cache.result = null;
+            displayValues.operator);
+        memory.operator[0] = previousOperator.id;
+        memory.result = null;
         inputDisplay.textContent = runningDisplay.textContent;
         runningDisplay.textContent = null;
         undoStoreValue();
         return;
     }
 
-    if (second) {
+    if (second !== '') {
         displayValues.operand2 = [...second]
             .slice(0, second.length - 1)
             .join('');
         input.pop();
-    } else if (displayValues.operation) {
-        displayValues.operation = '';
-        cache.operation.pop();
+    } else if (displayValues.operator !== '') {
+        displayValues.operator = '';
+        memory.operator.pop();
         undoStoreValue();
-    } else if (first) {
+    } else {
         displayValues.operand1 = [...first]
             .slice(0, first.length - 1)
             .join('');
@@ -124,144 +237,28 @@ function deleteInput() {
     updateDisplay();
 }
 
-function inputNumber(num) {
-    const resultExists = !isNaN(cache.result);
-    //Error handling
-    switch (true) {
-        case (resultExists && cache.values.length === 2):
-            reset();
-            break;
-        case (checkZero()):
-            if (num !== '0') divideZero();
-        case (+num > 0):
-            if (input.length === 1 && input[0] === '0') input.pop();
-            break;
-    }
-
-    switch (num) {
-        case ('.'):
-            if (input.includes('.')) return;
-            if (input.length === 0) input.push('0'); 
-            break;
-        case ('0'):
-            if (input.length === 1 && input[0] === '0') return;
-    }
-
-    input.push(num);
-    updateDisplay('number');
-}
-
-function inputOperation(operator) {
-    const resultExists = !isNaN(cache.result);
-    const displayOperators = {
-        add: '+',
-        subtract: '-',
-        multiply: '×',
-        divide: '÷',
-    }
-    if (checkZero()) {
-        if (operator === 'divide') return;
-        else {
-            divideZero();
-            cache.operation.splice(0, 1, operator);
-            updateDisplay('operator', displayOperators[operator]);
-            return;
-        }
-    }
-    if (input.length === 0 && !cache.values.length) {
-        input.push('0');
-        updateDisplay('number');        
-    }
-    if (cache.values.length === 1 && !input.length) {
-        cache.operation.splice(0, cache.operation.length, operator);
-    } else {
-        cache.operation.push(operator);
-    }
-    if (input.length > 0 && Boolean(cache.operation) && cache.values.length === 1) {
-        inputEquals();
-        cache.values.splice(0, 2, cache.result);
-        updateDisplay('pushResult', cache.result);
-    } else storeValue();
-    if (resultExists && cache.values.length === 2) {
-        cache.values.splice(0, 2, cache.result);
-        updateDisplay('pushResult', cache.result);
-    }
-
-    updateDisplay('operator', displayOperators[operator]);
-}
-
-function inputEquals(type) {
-    if (cache.operation.includes('divide') && parseFloat(input.join('')) === 0) {
-        divideZero(true);
-        return;
-    }
-
-    if (cache.values.length > 0 && input.length > 0) {
-        storeValue();
-        let operation = cache.operation.shift();
-        let output = calculate(operation, ...cache.values);
-        cache.result = (typeof output === 'string') ? Number(output) : output;
-        runningDisplay.textContent = inputDisplay.textContent;
-        inputDisplay.textContent = output;
-        
-        if (type === 'storeHistory') {
-            let calculation = {...displayValues};
-            calculation['result'] = cache.result;
-            storeHistory(calculation);
-        }
-    } else return
-}
-
 let checkZero = () => allDisplays.some(text => text.classList.contains('division-by-zero'));
 function divideZero(bool) {
     if (bool) {
         allDisplays.forEach(display => display.classList.add('division-by-zero'));
-        displayMessage('division', bool);
+        displayMessage('divideByZero', bool);
     } else {
         allDisplays.forEach(display => display.classList.remove('division-by-zero'));
-        displayMessage('division', bool);
+        displayMessage('divideByZero', bool);
     }
 }
 
- function storeValue() {
-    if (input.length > 0) {
-        cache.values.push(
-            +input.splice(0, input.length)
-            .join('')
-        );
+//Additional features
+let liveResults = false;
+function autoCalc() {
+    if ((input.length < 1) || (memory.operator[0] === 'divide' && 
+            +input.join('') === 0)) { 
+        return;
+    } else {
+        return calculate(memory.operator[0], memory.values[0], +input.join(''));
     }
 }
-function toggleState(element, ...states) {
-    states.forEach(item => element.classList.toggle(item))
-}
 
-function showHideKeyboard() {
-    const iconButtons = calculator.querySelectorAll('.icon-btn');
-    const inputKeys = buttonsContainer.querySelectorAll('span');
-    const calcButtons = buttonsContainer.querySelectorAll('button');
-    inputKeys.forEach(button => toggleState(button, 'display-none'));
-    calcButtons.forEach(button => toggleState(button, 'brightness-up'));
-    iconButtons.forEach(button => toggleState(button, 'no-icon'));
-}
-
-function displayMessage(messageType, bool) {
-    switch (messageType) {
-        case 'division':
-            runningDisplay.textContent = (bool) ? `Can\'t divide by 0` : null
-            break;
-        case 'liveResult':
-            const bottomRow = [...displaysContainer.getElementsByClassName('display')];
-            const showHideMessage = () => bottomRow.forEach(span => span.classList.toggle('display-none'));
-            let onOff = (bool) ? 'ON' : 'OFF';
-            runningMessage.textContent = `Live results: ${onOff}`;
-            if (runningMessage.classList.contains('display-none')) {
-                showHideMessage();
-                setTimeout(showHideMessage, 1000);
-            }
-            break;
-    }
-}
-//History panel
 const calcHistory = [];
 function storeHistory(calculation) {
     let li = document.createElement('li');
@@ -270,7 +267,7 @@ function storeHistory(calculation) {
     let length = historyDisplay.getElementsByTagName('li').length;
     let calcNum = `calc-${length}`;
 
-    let calc = `${calculation.operand1} ${calculation.operation} 
+    let calc = `${calculation.operand1} ${calculation.operator} 
         ${calculation.operand2}`
 
     calcItem.appendChild(document.createTextNode(calc));
@@ -306,8 +303,8 @@ function retrieveHistory(target, tag) {
     let itemNum = item.id.slice(5); //calc-n as index number
     let calcItem = calcHistory[itemNum];
 
-    cache.result = calcItem.result
-    cache.values = [Number(calcItem.operand1), Number(calcItem.operand2)];
+    memory.result = Number(calcItem.result);
+    memory.values = [Number(calcItem.operand1), Number(calcItem.operand2)];
     for (let key in displayValues) {
         if (Object.keys(calcItem).includes(key)) {
             displayValues[key] = calcItem[key];
@@ -316,11 +313,43 @@ function retrieveHistory(target, tag) {
 
     updateDisplay();
     runningDisplay.textContent = inputDisplay.textContent;
-    inputDisplay.textContent = cache.result;
+    inputDisplay.textContent = calcItem.result
+}
+
+//Styling
+function showHideKeyboard() {
+    const iconButtons = calculator.querySelectorAll('.icon-btn');
+    const inputKeys = buttonsContainer.querySelectorAll('span');
+    const calcButtons = buttonsContainer.querySelectorAll('button');
+    inputKeys.forEach(button => toggleState(button, 'display-none'));
+    calcButtons.forEach(button => toggleState(button, 'brightness-up'));
+    iconButtons.forEach(button => toggleState(button, 'no-icon'));
+}
+
+function displayMessage(messageType, bool) {
+    switch (messageType) {
+        case 'divideByZero':
+            runningDisplay.textContent = (bool) ? `Can\'t divide by 0` : null
+            break;
+        case 'autoCalc':
+            const bottomRow = [...displaysContainer.getElementsByClassName('display')];
+            const showHideMessage = () => bottomRow.forEach(span => span.classList.toggle('display-none'));
+            let onOff = (bool) ? 'ON' : 'OFF';
+            runningMessage.textContent = `Live results: ${onOff}`;
+            if (runningMessage.classList.contains('display-none')) {
+                showHideMessage();
+                setTimeout(showHideMessage, 1000);
+            }
+            break;
+    }
+}
+
+function toggleState(element, ...states) {
+    states.forEach(item => element.classList.toggle(item))
 }
 
 //Event listeners
-container.addEventListener('click', event => {
+main.addEventListener('click', event => {
     const target = event.target;
     const buttonId = target.getAttribute('id')
 
@@ -345,9 +374,9 @@ buttonsContainer.addEventListener('click', event => {
     const buttonId = target.getAttribute('id')
 
     switch (true) {
-        case (buttonId === 'live-calc'):
-            liveCalc = (liveCalc) ? false : true;
-            displayMessage('liveResult', liveCalc);
+        case (buttonId === 'live-results'):
+            liveResults = (liveResults) ? false : true;
+            displayMessage('autoCalc', liveResults);
             toggleState(target, 'live-active')
             toggleState(runningMessage, 'status-on', 'status-off');
             break;
@@ -369,43 +398,43 @@ historyDisplay.addEventListener('click', event => {
     let target = event.target;
     let tag = target.tagName;
 
-    if (tag === 'DIV' || tag === 'LI') retrieveHistory(target, tag)
+    if (historyPanel.classList.contains('opacity-0')) return;
+    if (tag === 'DIV' || tag === 'LI') retrieveHistory(target, tag);
 })
 historyClearButton.addEventListener('click', clearHistory);
-//Keyboard input
+//Keyboard events
 document.addEventListener('keydown', event => {
-    const eventKey = event.key;
     const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'];
-    const buttonMap = {
+    const calcFunctionsMap = {
         '+': 'add',
         '-': 'subtract',
         '*': 'multiply',
         '/': 'divide',
-        'Escape': 'clear',
-        'Backspace': 'backspace',
         'Delete': 'backspace',
-        'Enter': 'equals',
-        'h': 'toggle-history',
-        'a': 'live-calc'
+        Backspace: 'backspace',
+        Escape: 'clear',
+        Enter: 'equals',
+        h: 'toggle-history',
+        a: 'live-results'
     };
 
     if (helpPrompt.classList.contains('opacity-0')) {
         toggleState(helpPrompt, 'opacity-0', 'opacity-1');
     }
-    if ((event.key === 'Enter')) event.preventDefault();
-    if ((event.key === 'h' || event.key === 'q') && event.repeat) return;
+    if (['h', 'q', 'a'].includes(event.key) && event.repeat) return;
+    if (event.key === 'Enter') event.preventDefault();
     if (event.key === 'q') showHideKeyboard();
 
     let mappedButton;
-    if (numbers.includes(eventKey)) {
-        if (eventKey === '.') {
+    if (numbers.includes(event.key)) {
+        if (event.key === '.') {
             mappedButton = document.getElementById('decimal-point');
         } else {
-            mappedButton = document.getElementById(`number-${eventKey}`);
+            mappedButton = document.getElementById(`number-${event.key}`);
         }
     }
-    if (Object.keys(buttonMap).includes(eventKey)) {
-        let buttonId = buttonMap[eventKey];
+    if (Object.keys(calcFunctionsMap).includes(event.key)) {
+        let buttonId = calcFunctionsMap[event.key];
         mappedButton = document.getElementById(buttonId);
     }
 
