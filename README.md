@@ -1,7 +1,9 @@
 # calculator
+![Site preview](img/site-preview.png)
 A HTML, CSS and Javascript project from The Odin Project's [curriculum](https://www.theodinproject.com/paths/foundations/courses/foundations/lessons/calculator). Skills used:
 * HTML and CSS basics
 * JavaScript numbers, strings, conditionals, functions, arrays, objects and and DOM manipulation
+
 Sources:
 * Background from [Haikei](https://haikei.app/)
 * [Nord colour palette](https://www.nordtheme.com/docs/colors-and-palettes)
